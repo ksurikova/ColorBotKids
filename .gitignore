@@ -1,0 +1,76 @@
+# User-specific files
+*.xcuserdata
+*.xccheckout
+*.moved-aside
+
+# Xcode user data
+*.xcuserdatad
+*.xcworkspace/xcuserdata/
+*.xcscheme
+
+# Build products
+*.build/
+build/
+
+# Derived data
+DerivedData/
+
+# Xcode specific files
+*.xcworkspace
+!default.xcworkspace
+
+# Index
+*.xcuserstate
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# Swift Package Manager
+Packages/
+    .package.resolved
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+
+# Archives
+*.xcarchive
+
+# Playground files
+timeline.xctimeline
+playground.xcworkspace
+
+# Custom settings
+*.swp
+*.swx
+
+# macOS specific files
+    .DS_Store
+
+# Temporary files
+*.tmp
+*.lock
+*.bak
+*.orig
+*.so
+
+# Logs
+*.log
+
+# Git-specific files
+*.rebase-merge/
+*.rebase-apply/
+
+# Ignore SwiftLint cache files
+    .swiftlint.log
+    .swiftlint-cache/
+
+# Do not ignore SwiftLint configuration file
+!.swiftlint.yml
+
+# ignore xcConfig which contains sensitive information (credentials for service)
+AppConfig.xcconfig

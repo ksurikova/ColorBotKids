@@ -1,0 +1,45 @@
+# === Style Rules ===
+
+# Line length before wrapping
+--maxwidth 100
+
+# Remove semicolons at the end of lines
+--semicolons never
+
+# Use 4 spaces for indentation
+--indent 4
+
+# Line breaks after opening braces
+--wrapcollections before-first
+
+# Align comments to the code
+--comments indent
+
+# Sort import statements
+--importgrouping testable-bottom
+
+# Strip unused arguments
+--stripunusedargs closure-only
+
+# Use modern Swift conventions
+--self remove
+--commas always
+
+# Handle trailing commas:
+--trailingcommas always
+
+# Brace style (K&R - brace on same line)
+--allman false
+# DISABLE multiline statement brace wrapping
+--disable wrapMultilineStatementBraces
+
+# Don't format certain files or folders
+--exclude Pods
+
+# Swift version
+--swiftversion 5
+
+# Delete annoying whitespaces
+--trimwhitespace always
+
+

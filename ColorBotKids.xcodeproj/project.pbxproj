@@ -6,13 +6,35 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6EC282072E9FB6BA00CBED95 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 6EC282062E9FB6B100CBED95 /* .gitignore */; };
+		6EC282EB2E9FB74D00CBED95 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 6EC282EA2E9FB74D00CBED95 /* .swiftlint.yml */; };
+		6EC282EC2E9FB74D00CBED95 /* .swiftformat in Resources */ = {isa = PBXBuildFile; fileRef = 6EC282E92E9FB74D00CBED95 /* .swiftformat */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		6EC281F82E9FB64C00CBED95 /* ColorBotKids.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ColorBotKids.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EC282062E9FB6B100CBED95 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		6EC282E92E9FB74D00CBED95 /* .swiftformat */ = {isa = PBXFileReference; lastKnownFileType = text; path = .swiftformat; sourceTree = "<group>"; };
+		6EC282EA2E9FB74D00CBED95 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6E1EC2052EB7BE9B005D4F46 /* Exceptions for "ColorBotKids" folder in "ColorBotKids" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6EC281F72E9FB64C00CBED95 /* ColorBotKids */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6EC281FA2E9FB64C00CBED95 /* ColorBotKids */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6E1EC2052EB7BE9B005D4F46 /* Exceptions for "ColorBotKids" folder in "ColorBotKids" target */,
+			);
 			path = ColorBotKids;
 			sourceTree = "<group>";
 		};
@@ -32,6 +54,9 @@
 		6EC281EF2E9FB64C00CBED95 = {
 			isa = PBXGroup;
 			children = (
+				6EC282E92E9FB74D00CBED95 /* .swiftformat */,
+				6EC282EA2E9FB74D00CBED95 /* .swiftlint.yml */,
+				6EC282062E9FB6B100CBED95 /* .gitignore */,
 				6EC281FA2E9FB64C00CBED95 /* ColorBotKids */,
 				6EC281F92E9FB64C00CBED95 /* Products */,
 			);
@@ -55,6 +80,7 @@
 				6EC281F42E9FB64C00CBED95 /* Sources */,
 				6EC281F52E9FB64C00CBED95 /* Frameworks */,
 				6EC281F62E9FB64C00CBED95 /* Resources */,
+				6EC282E82E9FB71C00CBED95 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -109,10 +135,34 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EC282072E9FB6BA00CBED95 /* .gitignore in Resources */,
+				6EC282EB2E9FB74D00CBED95 /* .swiftlint.yml in Resources */,
+				6EC282EC2E9FB74D00CBED95 /* .swiftformat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		6EC282E82E9FB71C00CBED95 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type \nif [[ \"$(uname -m)\" == arm64 ]]\nthen\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\nif which swiftformat > /dev/null;\nthen\n    swiftformat \"$SRCROOT\" --config \"$SRCROOT/.swiftformat\" --verbose\nelse\n    echo \"warning: `swiftformat` command not found - \n    Install with 'brew install swiftformat'\"\nfi\nif command -v swiftlint >/dev/null 2>&1\nthen\n    swiftlint\nelse\n    echo \"warning: `swiftlint` command not found - See https://github.com/realm/SwiftLint#installation for installation instructions.\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		6EC281F42E9FB64C00CBED95 /* Sources */ = {
@@ -163,7 +213,7 @@
 				DEVELOPMENT_TEAM = N4F7RVH5TU;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -227,7 +277,7 @@
 				DEVELOPMENT_TEAM = N4F7RVH5TU;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -256,6 +306,10 @@
 				DEVELOPMENT_TEAM = N4F7RVH5TU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ColorBotKids/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need to access to your microphone to recognize speech";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need to access your Photo Library to save images here";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need you to allow us speech recognizing";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,6 +338,10 @@
 				DEVELOPMENT_TEAM = N4F7RVH5TU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ColorBotKids/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need to access to your microphone to recognize speech";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need to access your Photo Library to save images here";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need you to allow us speech recognizing";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
