@@ -5,6 +5,7 @@ For parents — one-time setup:
 2. Configure speech recognition & text-to-speech
 3. Grant microphone and speech recognition access
 4. Optionally grant Photos access to save finished artwork
+
 For kids — pure magic:
 1. Speak your idea out loud
 2. Hear the app read back what it understood
