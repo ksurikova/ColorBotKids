@@ -8,7 +8,7 @@ import SwiftUI
 
 struct MainActionButton: View {
     let icon: String
-    let label: String
+    let label: LocalizedStringKey
     let color: Color
     var isActive: Bool = false
     var isEnabled: Bool = true
@@ -66,11 +66,11 @@ struct MainActionButton: View {
 }
 
 #Preview("active") {
-    MainActionButton(icon: "mic.fill", label: "Stop",
+    MainActionButton(icon: "mic.fill", label: "common_action_stop",
                      color: .blue, isActive: true, isEnabled: true, action: {})
 }
 
 #Preview("not active") {
-    MainActionButton(icon: "paintbrush.pointed.fill", label: "Draw It!",
+    MainActionButton(icon: "paintbrush.pointed.fill", label: "common_action_draw",
                      color: .green, isActive: false, isEnabled: false, action: {})
 }
