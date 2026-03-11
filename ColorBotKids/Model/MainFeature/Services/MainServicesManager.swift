@@ -33,10 +33,6 @@ final class MainServicesManager {
 
     // Recreates services (useful when configuration changes)
     func recreateServices() throws {
-        print(
-            "speech configuration to recreate is \(configurationManager.configuration.speechConfig?.language ?? "lang")"
-        )
-        print("We recreate services!")
         services = try servicesFactory.createServices(
             configuration: configurationManager.configuration,
             resolver: configurationManager.resolver
@@ -52,8 +48,6 @@ final class MainServicesManager {
         tts.onDidFailToPlay = onDidFailToPlay
         services?.textToSpeech = tts
     }
-
-    // MARK: - Error Mapping
 
     // Creates services if they don't exist yet. Safe to call multiple times.
     func createServicesIfNeeded() throws {
