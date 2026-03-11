@@ -29,7 +29,5 @@ struct NotificationStackView: View {
             }
         }
         .padding(.top, 60)
-        .animation(.spring(), value: viewModel.state)
-        .animation(.spring(), value: viewModel.ttsWarning)
     }
 }

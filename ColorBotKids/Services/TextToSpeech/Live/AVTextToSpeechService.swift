@@ -38,23 +38,13 @@ final class AVTextToSpeechService: NSObject, TextToSpeechService, AVSpeechSynthe
     }
 
     func speak(_ text: String) {
-        guard isAvailable, let voice else {
-            return
-        }
+        guard isAvailable, let voice else { return }
 
-        // Stop any ongoing speech
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
         }
 
-        // Check volume and notify if needed
-        if let warningLevel = checkVolumeLevel() {
-            print("sound is low")
-            onVolumeWarning?(warningLevel)
-            // Don't return - still attempt to play
-            // User might have headphones or Bluetooth connected
-        }
-
+        // Activate session FIRST so outputVolume is accurate
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(
@@ -66,6 +56,12 @@ final class AVTextToSpeechService: NSObject, TextToSpeechService, AVSpeechSynthe
         } catch {
             onDidFailToPlay?()
             return
+        }
+
+        // OutputVolume reflects reality only after session is active, so check volume here
+        if let warningLevel = checkVolumeLevel() {
+            print("sound is low")
+            onVolumeWarning?(warningLevel)
         }
 
         let utterance = AVSpeechUtterance(string: text)

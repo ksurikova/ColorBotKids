@@ -1,9 +1,3 @@
-//
-//  BaseBannerView.swift
-//  ColorBotKids
-//
-//  Created by ksurikova on 24.10.2025.
-//
 import SwiftUI
 
 struct BaseBannerView: View {
@@ -13,23 +7,31 @@ struct BaseBannerView: View {
     let onClose: (() -> Void)?
 
     @State private var isVisible = false
+    @State private var autoDismissTask: Task<Void, Never>?
+
+    init(message: String, icon: Image, duration: TimeInterval?, onClose: (() -> Void)?) {
+        self.message = message
+        self.icon = icon
+        self.duration = duration
+        self.onClose = onClose
+        // print("🚩 [Banner] Init with message: \(message)")
+    }
 
     var body: some View {
         HStack(spacing: 16) {
             icon
                 .font(.title3)
                 .foregroundColor(.orange)
+
             Text(message)
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(.primary)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer()
             if onClose != nil {
-                Button(action: {
-                    hide()
-                }, label: {
+                Button(action: { dismiss() }, label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.orange.opacity(0.8))
                         .font(.title3)
@@ -47,50 +49,44 @@ struct BaseBannerView: View {
         )
         .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: 8)
         .padding(.horizontal, 20)
-        .offset(y: isVisible ? 0 : -200) // Increased offset for a more pronounced animation
+        .offset(y: isVisible ? 0 : -150)
         .opacity(isVisible ? 1 : 0)
-        .onAppear(perform: show)
-        .task {
-            // If a duration is provided, hide after that time
-            if let duration, duration > 0 {
+        .onAppear {
+            // print("🚩 [Banner] onAppear triggered")
+            present()
+        }
+        .onDisappear {
+            // print("🚩 [Banner] onDisappear triggered")
+        }
+    }
+
+    private func present() {
+        // why Task? - decoupling the animation from the onAppear call stack to avoid SwiftUI layout
+        // conflicts.
+        Task { @MainActor in
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                isVisible = true
+            }
+
+            guard let duration, duration > 0 else { return }
+
+            autoDismissTask?.cancel()
+            autoDismissTask = Task {
                 try? await Task.sleep(for: .seconds(duration))
-                hide()
+                guard !Task.isCancelled else { return }
+                dismiss()
             }
         }
     }
 
-    // MARK: - Helpers
-
-    private func show() {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-            isVisible = true
-        }
-    }
-
-    private func hide() {
+    private func dismiss() {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
             isVisible = false
         }
-        // Use an async task to allow the animation to finish before calling onClose
-        if let onClose {
-            Task {
-                try? await Task.sleep(for: .seconds(0.5))
-                onClose()
-            }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.5))
+            onClose?()
         }
     }
-}
-
-#Preview("Auto-dismissing banner") {
-    BaseBannerView(message: "Operation was successful. This will disappear.",
-                   icon: Image(systemName: "checkmark.circle.fill"),
-                   duration: 3.0,
-                   onClose: { print("Banner closed") })
-}
-
-#Preview("Manual close banner") {
-    BaseBannerView(message: "Unexpected error happens. Please close manually.",
-                   icon: Image(systemName: "exclamationmark.triangle.fill"),
-                   duration: nil, // Stays until closed
-                   onClose: { print("Banner closed") })
 }
