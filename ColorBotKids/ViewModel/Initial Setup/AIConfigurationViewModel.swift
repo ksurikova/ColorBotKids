@@ -31,6 +31,15 @@ final class AIConfigurationViewModel: ObservableObject {
         !requiresApiKey || !apiKey.isEmpty
     }
 
+    var apiKeyFooterText: LocalizedStringKey? {
+        guard requiresApiKey else { return nil }
+        switch selectedProvider {
+        case .openAI: return "onboarding_footer_openai_apiKey"
+        case .stabilityAI: return "onboarding_footer_stability_apiKey"
+        case .mock: return nil
+        }
+    }
+
     // MARK: - Initialization
 
     init(configManager: ConfigurationManager) {

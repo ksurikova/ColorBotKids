@@ -232,7 +232,7 @@ final class AppRouter: ObservableObject {
     }
 
     private func editorViewModel() -> ImageEditorViewModel? {
-        guard let currentSession = sessionManager.currentSession else {
+        guard let _ = sessionManager.currentSession else {
             // No active session.
             return nil
         }

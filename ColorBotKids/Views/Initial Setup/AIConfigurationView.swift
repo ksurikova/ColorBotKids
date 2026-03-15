@@ -31,7 +31,18 @@ struct AIConfigurationView: View {
                 providerPicker
 
                 if viewModel.requiresApiKey {
-                    apiKeyField
+                    VStack(alignment: .leading, spacing: 8) {
+                        apiKeyField
+
+                        // never have nil here, but to satisfy the optionality of the view model
+                        // property
+                        Text(viewModel.apiKeyFooterText ?? "")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 4)
+                            .transition(.opacity)
+                    }
+                    .animation(.easeInOut(duration: 0.2), value: viewModel.selectedProvider)
                 }
 
                 Spacer()
@@ -61,9 +72,7 @@ struct AIConfigurationView: View {
     }
 
     private var apiKeyField: some View {
-        SecureField("onboarding_label_enterApiKey", text: $viewModel.apiKey)
-            .textContentType(.password)
-            .autocorrectionDisabled()
+        APIKeyFieldView(placeholder: "onboarding_label_enterApiKey", text: $viewModel.apiKey)
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(12)

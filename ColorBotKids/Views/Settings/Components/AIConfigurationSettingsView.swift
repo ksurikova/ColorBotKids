@@ -24,9 +24,8 @@ struct AIConfigurationSectionView: View {
             }
 
             if viewModel.requiresApiKey {
-                SecureField("settings_label_apiKey", text: $viewModel.apiKey)
-                    .autocorrectionDisabled()
-                    .textContentType(.password)
+                APIKeyFieldView(placeholder: "settings_label_apiKey", text: $viewModel.apiKey)
+                    .padding()
             }
         }
     }

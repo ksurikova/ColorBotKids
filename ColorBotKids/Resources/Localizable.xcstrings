@@ -1782,6 +1782,53 @@
         }
       }
     },
+    "onboarding_footer_gemini_apiKey" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To get a Gemini API key, visit aistudio.google.com → Sign in → Get API key."
+          }
+        }
+      }
+    },
+    "onboarding_footer_openai_apiKey" : {
+      "comment" : "AIConfigurationView",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To get an OpenAI API key, visit platform.openai.com → Sign up → API Keys → Create new secret key."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы получить ключ API OpenAI, перейдите на сайт platform.openai.com → Зарегистрироваться → Ключи API → Создать новый секретный ключ."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI API anahtarı almak için platform.openai.com adresini ziyaret edin → Kaydolun → API Anahtarları → Yeni gizli anahtar oluşturun."
+          }
+        }
+      }
+    },
+    "onboarding_footer_stability_apiKey" : {
+      "comment" : "AIConfigurationView",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To get a Stability AI API key, visit platform.stability.ai → Sign up → Account → API Keys."
+          }
+        }
+      }
+    },
     "onboarding_label_enterApiKey" : {
       "comment" : "AIConfigurationView",
       "extractionState" : "manual",
@@ -2273,19 +2320,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select the AI service that will create the coloring pages. Some services require an API key."
+            "value" : "Select the AI service that will create the coloring pages. Services require an API key."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выберите сервис ИИ, который будет создавать раскраски. Некоторые сервисы требуют API-ключ."
+            "value" : "Выберите сервис ИИ, который будет создавать раскраски. Сервисы требуют API-ключ."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boyama sayfalarını oluşturacak yapay zeka hizmetini seçin. Bazı hizmetler API anahtarı gerektirir."
+            "value" : "Boyama sayfalarını oluşturacak yapay zeka hizmetini seçin.Hizmetler API anahtarı gerektirir."
           }
         }
       }
