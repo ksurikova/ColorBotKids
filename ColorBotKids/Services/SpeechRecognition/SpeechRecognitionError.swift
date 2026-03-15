@@ -15,6 +15,7 @@ enum SpeechRecognitionError: LocalizedError {
     case noResultsReturned
     case alreadyRunning
     case notRunning
+    case cancelled
     case unsupportedSettings
     case initializationFailed(Error)
 
@@ -59,6 +60,11 @@ enum SpeechRecognitionError: LocalizedError {
         case .notRunning:
             return NSLocalizedString(
                 "speech_recognition_error_notRunning",
+                comment: "SpeechRecognitionError"
+            )
+        case .cancelled:
+            return NSLocalizedString(
+                "speech_recognition_error_cancelled",
                 comment: "SpeechRecognitionError"
             )
         case .unsupportedSettings:

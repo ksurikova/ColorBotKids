@@ -2739,6 +2739,9 @@
         }
       }
     },
+    "speech_recognition_error_cancelled" : {
+      "comment" : "SpeechRecognitionError"
+    },
     "speech_recognition_error_initializationFailed" : {
       "extractionState" : "manual",
       "localizations" : {

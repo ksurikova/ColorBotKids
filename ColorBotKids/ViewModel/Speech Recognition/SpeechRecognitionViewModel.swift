@@ -186,6 +186,9 @@ final class SpeechRecognitionViewModel: ObservableObject {
     func handleSettingsDismissed() {
         guard serviceNeedsRecreation else { return }
         serviceNeedsRecreation = false
+        // Safety: Stop everything before recreation
+        speechService?.cancelRecognition()
+        ttsService?.stop()
         state = .preparingServices
         do {
             try servicesManager.recreateServices()

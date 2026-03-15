@@ -17,7 +17,7 @@ enum MainActionState: Equatable {
     // UI helpers
     var isBlocked: Bool {
         switch self {
-        case .preparingServices, .fatalError, .analysingSpeech, .generatingImage:
+        case .preparingServices, .fatalError, .analysingSpeech, .generatingImage, .processingSpeech:
             return true
         default:
             return false

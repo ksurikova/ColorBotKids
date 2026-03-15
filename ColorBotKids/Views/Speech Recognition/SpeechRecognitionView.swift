@@ -30,6 +30,8 @@ struct SpeechRecognitionView: View {
                 HStack {
                     Spacer()
                     SettingsButtonView(showSettings: $viewModel.showSettings)
+                        .disabled(viewModel.state.isBlocked)
+                        .opacity(viewModel.state.isBlocked ? 0.5 : 1.0)
                 }
                 .padding()
 

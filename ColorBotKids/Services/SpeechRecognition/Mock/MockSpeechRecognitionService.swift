@@ -45,6 +45,10 @@ final class MockSpeechRecognitionService: SpeechRecognitionService {
         return "tree"
     }
 
+    func cancelRecognition() {
+        //
+    }
+
     static func getSupportedLocales() -> [Locale] {
         supportedLocales
     }

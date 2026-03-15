@@ -12,6 +12,7 @@ protocol SpeechRecognitionService: CriticalServiceCapability {
     var isRunning: Bool { get }
     init(settings: SpeechRecognitionSettings) throws
     func startRecognition() throws
+    func cancelRecognition()
     func stopRecognition() async throws -> String
     static func getSupportedLocales() -> [Locale]
     static func canCreateWithCurrentSettings(_ settings: SpeechRecognitionSettings) -> Bool
