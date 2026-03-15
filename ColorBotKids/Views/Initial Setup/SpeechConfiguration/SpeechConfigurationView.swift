@@ -7,10 +7,14 @@
 import SwiftUI
 
 struct SpeechConfigurationView: View {
-    @ObservedObject private var viewModel: SpeechConfigurationViewModel
+    @StateObject private var viewModel: SpeechConfigurationViewModel
 
-    init(viewModel: SpeechConfigurationViewModel) {
-        self.viewModel = viewModel
+    init(configManager: ConfigurationManager, permissionManager: PermissionManager) {
+        _viewModel =
+            StateObject(wrappedValue: SpeechConfigurationViewModel(
+                configManager: configManager,
+                permissionManager: permissionManager
+            ))
     }
 
     var body: some View {

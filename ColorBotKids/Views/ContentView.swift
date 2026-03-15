@@ -30,7 +30,7 @@ struct ContentView: View {
                 }
 
             case .ready:
-                router.buildView()
+                router.buildView(path: $router.path)
             }
         }
         .task {

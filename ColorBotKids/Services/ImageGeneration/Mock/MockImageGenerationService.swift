@@ -8,19 +8,18 @@ import SwiftUI
 
 final class MockImageGenerationService: ImageGenerationService {
     private let config: ImageGenerationConfig
+    private let mockSymbols = ["photo", "camera", "sparkles", "wand.and.stars", "paintpalette"]
 
     init(config: ImageGenerationConfig) {
         self.config = config
     }
 
     func generateImage(from prompt: String) async throws -> UIImage {
-        let finalPrompt = config.promptBuilder.makePrompt(from: prompt)
-        print("Generating image with prompt: \(finalPrompt)")
+        let symbol = mockSymbols.randomElement() ?? "photo"
+        let config = UIImage.SymbolConfiguration(pointSize: 120, weight: .thin)
 
-        // Simulate network delay
         try await Task.sleep(nanoseconds: 1_000_000_000)
-
-        // Return a placeholder image
-        return UIImage(named: "defaultImage")!
+        return UIImage(systemName: symbol, withConfiguration: config) ??
+            UIImage(named: "defaultImage")!
     }
 }

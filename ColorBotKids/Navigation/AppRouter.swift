@@ -2,7 +2,7 @@
 //  AppRouter.swift
 //  ColorBotKids
 //
-//  Created by ksurikova on 4.02.2026.
+//  Created by ksurikova on 15.03.2025.
 //
 import Combine
 import SwiftUI
@@ -11,32 +11,13 @@ import SwiftUI
 final class AppRouter: ObservableObject {
     // MARK: - Route Definition
 
-    enum Route: Equatable, Hashable {
+    enum Route: Hashable {
         case initializing
         case aiConfiguration
         case speechConfiguration
         case photoPermission
         case main
         case imageEditor
-
-        var id: String {
-            switch self {
-            case .initializing: return "initializing"
-            case .aiConfiguration: return "aiConfiguration"
-            case .speechConfiguration: return "speechConfiguration"
-            case .photoPermission: return "photoPermission"
-            case .main: return "main"
-            case .imageEditor: return "imageEditor"
-            }
-        }
-
-        var isOnboarding: Bool {
-            switch self {
-            case .initializing, .aiConfiguration,
-                 .speechConfiguration, .photoPermission: true
-            case .main, .imageEditor: false
-            }
-        }
     }
 
     // MARK: - Dependencies
@@ -47,28 +28,21 @@ final class AppRouter: ObservableObject {
     private let imageToolingManager: ImageToolingManager
     private let settingsService: SettingsService
 
-    // Lazily initialized: Created only when needed (first edit session) and reused thereafter.
     private lazy var editorPersistenceInteractor: EditorPersistenceInteractor =
         .init(sessionManager: sessionManager)
 
-    // MARK: - Cached ViewModels
-
-    // Keeps the speech VM alive to retain critical service state.
-    private var cachedSpeechVM: SpeechRecognitionViewModel?
-
     // MARK: - State
 
-    @Published private(set) var currentRoute: Route = .initializing
+    @Published var path = NavigationPath()
+    @Published private(set) var rootRoute: Route = .initializing
+
     private var isInitializing = true
     private var cancellables: Set<AnyCancellable> = []
-
-    // MARK: - Integration
+    private var cachedSpeechVM: SpeechRecognitionViewModel?
 
     var configurationManager: ConfigurationManager {
         mainServicesManager.configurationManager
     }
-
-    // MARK: - Initialization
 
     init(
         mainServicesManager: MainServicesManager,
@@ -86,98 +60,92 @@ final class AppRouter: ObservableObject {
         setupObservers()
     }
 
-    // MARK: - Route Management
+    // MARK: - Initialization & Logic
 
     func finishInitialization() {
         isInitializing = false
-        updateRouteIfNeeded()
-        print("✅ Router: Initialization finished, route: \(currentRoute.id)")
+
+        // 1. Set the background (Root)
+        rootRoute = computeRootRoute()
+
+        // 2. If there's an active session, push the editor immediately
+        syncStackWithSession()
+
+        print("Router: Init finished. Root: \(rootRoute), Stack Depth: \(path.count)")
     }
 
     private func setupObservers() {
-        // 1. Observe Configuration
+        // 1. Observe Configuration changes
         configurationManager.configurationSaved
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.updateRouteIfNeeded()
-            }
+            .sink { [weak self] _ in self?.updateRootIfNeeded() }
             .store(in: &cancellables)
 
-        // 2. Listen to all permissions
-        Publishers.MergeMany(
-            permissionManager.microphone.eraseToAnyPublisher(),
-            permissionManager.speechRecognition.eraseToAnyPublisher(),
-            permissionManager.photoLibrary.eraseToAnyPublisher()
+        // 2. Observe ALL three permission subjects
+        // CombineLatest3 waits for all 3 to have a value (which they always do)
+        // and fires whenever any of them changes.
+        Publishers.CombineLatest3(
+            permissionManager.microphone,
+            permissionManager.speechRecognition,
+            permissionManager.photoLibrary
         )
         .receive(on: RunLoop.main)
-        .sink { [weak self] _ in
-            self?.updateRouteIfNeeded()
+        .sink { [weak self] _, _, _ in
+            // We don't need the values here because computeRootRoute()
+            // will read them directly from the manager.
+            self?.updateRootIfNeeded()
         }
         .store(in: &cancellables)
-
-        // 3. Observe Session (Explicit Subject)
+        // Logic for changing the STACK (Opening/Closing the Editor)
         sessionManager.sessionChanged
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.updateRouteIfNeeded()
-            }
+            .sink { [weak self] _ in self?.syncStackWithSession() }
             .store(in: &cancellables)
     }
 
-    // MARK: - Routing
-
-    private func updateRouteIfNeeded() {
+    private func updateRootIfNeeded() {
         guard !isInitializing else { return }
-
-        let newRoute = computeRoute()
-        if currentRoute != newRoute {
-            print("🔄 Route changed: \(currentRoute.id) → \(newRoute.id)")
-            currentRoute = newRoute
+        let newRoot = computeRootRoute()
+        if rootRoute != newRoot {
+            rootRoute = newRoot
         }
     }
 
-    private func computeRoute() -> Route {
+    private func syncStackWithSession() {
+        guard !isInitializing else { return }
+
         if sessionManager.currentSession != nil {
-            return .imageEditor
-        }
-
-        if configurationManager.configuration.aiConfig == nil {
-            return .aiConfiguration
-        }
-
-        if let caps = configurationManager.currentSpeechCapabilities {
-            if !caps.isCriticalValid {
-                return .speechConfiguration
+            // Push editor if not already there (we assume path.count > 0 means editor is shown)
+            if path.isEmpty {
+                path.append(Route.imageEditor)
             }
         } else {
-            return .speechConfiguration
+            // Pop to root if session is cleared
+            if !path.isEmpty {
+                path = NavigationPath()
+            }
         }
+    }
 
-        if !permissionManager.hasSpeechPermissions {
-            return .speechConfiguration
-        }
+    private func computeRootRoute() -> Route {
+        if configurationManager.configuration.aiConfig == nil { return .aiConfiguration }
 
-        if permissionManager.photoLibrary.value == .notDetermined {
-            return .photoPermission
-        }
+        if let caps = configurationManager.currentSpeechCapabilities {
+            if !caps.isCriticalValid { return .speechConfiguration }
+        } else { return .speechConfiguration }
+
+        if !permissionManager.hasSpeechPermissions { return .speechConfiguration }
+
+        if permissionManager.photoLibrary.value == .notDetermined { return .photoPermission }
 
         return .main
     }
 
-    // MARK: - View
+    // MARK: - View Building
 
     @ViewBuilder
-    func buildView() -> some View {
-        if currentRoute.isOnboarding {
-            buildOnboardingView()
-        } else {
-            buildAppView()
-        }
-    }
-
-    @ViewBuilder
-    private func buildOnboardingView() -> some View {
-        switch currentRoute {
+    func buildView(path: Binding<NavigationPath>) -> some View {
+        switch rootRoute {
         case .initializing:
             ProgressIndicatorView(
                 descriptionMessage: String(localized: "onboarding_message_preparingApp")
@@ -185,36 +153,30 @@ final class AppRouter: ObservableObject {
         case .aiConfiguration:
             AIConfigurationView(configManager: configurationManager)
         case .speechConfiguration:
-            let viewModel = SpeechConfigurationViewModel(
+            SpeechConfigurationView(
                 configManager: configurationManager,
                 permissionManager: permissionManager
             )
-            SpeechConfigurationView(viewModel: viewModel)
         case .photoPermission:
             PhotoPermissionsView(permissionManager: permissionManager)
-        default:
-            EmptyView()
+        case .main, .imageEditor:
+            buildMainStack(path: path)
         }
     }
 
     @ViewBuilder
-    private func buildAppView() -> some View {
-        ZStack {
+    private func buildMainStack(path: Binding<NavigationPath>) -> some View {
+        NavigationStack(path: path) {
             SpeechRecognitionView(
                 configManager: configurationManager,
                 permissionManager: permissionManager,
                 viewModel: speechViewModel()
             )
-            .opacity(currentRoute == .main ? 1 : 0)
-            .allowsHitTesting(currentRoute == .main)
-
-            if let editorVM = editorViewModel() {
-                NavigationStack {
-                    ImageEditorView(viewModel: editorVM)
+            .navigationDestination(for: Route.self) { route in
+                if route == .imageEditor, let vm = self.editorViewModel() {
+                    ImageEditorView(viewModel: vm)
+                        .navigationBarBackButtonHidden(true)
                 }
-                .transition(.opacity)
-                .opacity(currentRoute == .imageEditor ? 1 : 0)
-                .allowsHitTesting(currentRoute == .imageEditor)
             }
         }
     }
@@ -232,17 +194,12 @@ final class AppRouter: ObservableObject {
     }
 
     private func editorViewModel() -> ImageEditorViewModel? {
-        guard let _ = sessionManager.currentSession else {
-            // No active session.
-            return nil
-        }
-        // create a fresh VM using the long-lived interactor.
-        let vm = ImageEditorViewModel(
+        guard sessionManager.currentSession != nil else { return nil }
+        return ImageEditorViewModel(
             persistenceInteractor: editorPersistenceInteractor,
             toolingManager: imageToolingManager,
             permissionManager: permissionManager,
             settingsService: settingsService
         )
-        return vm
     }
 }
