@@ -8,89 +8,6 @@
 import Combine
 import SwiftUI
 
-// This helper sets up the entire dependency graph with mocks for previews.
-@MainActor
-private struct PreviewHelper {
-    let viewModel: SpeechRecognitionViewModel
-    let configManager: ConfigurationManager
-    let permissionManager: PermissionManager
-    let servicesManager: MainServicesManager // Keep reference to prevent dealloc if weak refs exist
-    let sessionManager: SessionManager // Keep reference
-    let draftService: SpeechConfigurationDraftService
-
-    init(state: MainActionState) {
-        // 1. Storage & Configuration
-        let mockConfig = AppConfiguration(
-            aiConfig: AIConfiguration(provider: .mock, apiKey: "test-key"),
-            speechConfig: SpeechConfiguration(
-                language: "en-US",
-                useOnlyOnDevice: false,
-                autoPlayConfirmation: true
-            )
-        )
-
-        let storage = MockConfigurationStorage(
-            shouldLoadConfig: true,
-            currentConfiguration: mockConfig
-        )
-
-        // 2. Resolvers & Services
-        let resolver = SpeechCapabilityResolver(
-            speechService: MockSpeechRecognitionService.self,
-            ttsService: MockTextToSpeechService.self
-        )
-        draftService = MockSpeechConfigurationDraftService()
-
-        // 3. Managers
-        configManager = ConfigurationManager(storage: storage, resolver: resolver)
-        // Critical: Load the configuration into memory so services can be created
-        configManager.load()
-
-        // Factory that returns MockImageGenerationService because config provider is .mock
-        let factory = MainServiceFactory(
-            imageGenerationServiceFactory: LiveImageGenerationServiceFactory()
-        )
-
-        servicesManager = MainServicesManager(
-            configurationManager: configManager,
-            servicesFactory: factory
-        )
-
-        // Session
-        let sessionStore = MockStateStorage()
-        let restoration = MockStateRestorationService()
-        sessionManager = SessionManager(
-            stateStorage: sessionStore,
-            restorationService: restoration
-        )
-
-        // Permission - Authorize everything
-        let authorizedStatuses: [String: PermissionStatus] = [
-            Permissions.microphone.id: .authorized,
-            Permissions.speechRecognition.id: .authorized,
-            Permissions.photoLibrary.id: .authorized,
-        ]
-        let mockPermissionService = MockPermissionService(permissionStatuses: authorizedStatuses)
-        permissionManager = PermissionManager(service: mockPermissionService)
-
-        // 4. ViewModel
-        viewModel = SpeechRecognitionViewModel(
-            servicesManager: servicesManager,
-            sessionManager: sessionManager
-        )
-
-        // Force the desired state
-        viewModel.state = state
-
-        // Pre-fill some text for the "speechRecognized" state explicitly if needed
-        if case let .speechRecognized(text) = state {
-            // We might need to handle this if the VM stores text separately,
-            // but in MainActionState, text is associated value.
-            print("Preview state set: \(text)")
-        }
-    }
-}
-
 struct SpeechRecognitionView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
@@ -128,12 +45,31 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
 
     @MainActor
     private static func previewFor(state: MainActionState, name: String) -> some View {
-        let helper = PreviewHelper(state: state)
+        let container = MockDependencyContainer()
+
+        // Initialize services for the preview
+        let servicesManager = container.mainServicesManager
+
+        // 1. Ensure configuration is loaded (synchronous for mocks)
+        servicesManager.configurationManager.load()
+
+        // 2. Create the service stack
+        try? servicesManager.prepareServices()
+
+        // 3. Create ViewModel
+        let viewModel = SpeechRecognitionViewModel(
+            servicesManager: servicesManager,
+            sessionManager: container.sessionManager
+        )
+
+        // Force the desired state for the preview
+        viewModel.state = state
+
         return SpeechRecognitionView(
-            configManager: helper.configManager,
-            permissionManager: helper.permissionManager,
-            draftService: helper.draftService,
-            viewModel: helper.viewModel
+            configManager: servicesManager.configurationManager,
+            permissionManager: container.permissionManager,
+            draftService: container.speechConfigurationDraftService,
+            viewModel: viewModel
         )
         .previewDisplayName(name)
     }

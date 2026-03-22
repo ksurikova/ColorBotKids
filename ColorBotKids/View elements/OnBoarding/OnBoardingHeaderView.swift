@@ -38,11 +38,20 @@ struct OnboardingHeaderView: View {
     }
 }
 
-#Preview("") {
+#Preview("1") {
     OnboardingHeaderView(
         icon: "brain.head.profile",
         title: "onboarding_title_AI",
         description: nil,
+        gradient: AnyShapeStyle(LinearGradient.bluePurple)
+    )
+}
+
+#Preview("2") {
+    OnboardingHeaderView(
+        icon: "waveform.circle.fill",
+        title: "onboarding_title_speechConfig",
+        description: "onboarding_description_speechConfig",
         gradient: AnyShapeStyle(LinearGradient.bluePurple)
     )
 }

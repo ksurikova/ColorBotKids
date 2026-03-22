@@ -26,3 +26,23 @@ struct ConfigurationContainerView<Content: View>: View {
         .padding()
     }
 }
+
+#Preview("default") {
+    ConfigurationContainerView(
+        error: nil,
+        onDismissError: {},
+        content: {
+            Color.blue
+        }
+    )
+}
+
+#Preview("error") {
+    ConfigurationContainerView(
+        error: AppError.initializationFailed,
+        onDismissError: {},
+        content: {
+            Color.blue
+        }
+    )
+}

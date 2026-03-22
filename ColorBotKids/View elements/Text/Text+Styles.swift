@@ -16,6 +16,8 @@ extension Text {
     func mainStyle() -> some View {
         font(.system(size: 28, weight: .bold, design: .rounded))
             .multilineTextAlignment(.center)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     func plainStyle() -> some View {

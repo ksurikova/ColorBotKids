@@ -22,49 +22,66 @@ struct SpeechConfigurationView: View {
             ))
     }
 
+    // Init for Previews / Dependency Injection
+    init(viewModel: SpeechConfigurationViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+
     var body: some View {
         ConfigurationContainerView(
             error: viewModel.error.map { $0 as Error },
             onDismissError: viewModel.dismissError,
             content: {
-                OnboardingHeaderView(
-                    icon: "waveform.circle.fill",
-                    title: "onboarding_title_speechConfig"
-                )
+                // Wrap the informational content in a ScrollView
+                ScrollView {
+                    VStack(spacing: 20) {
+                        OnboardingHeaderView(
+                            icon: "waveform.circle.fill",
+                            title: "onboarding_title_speechConfig"
+                        )
 
-                // Language Section
-                SpeechLanguageSection(
-                    selectedLocale: $viewModel.selectedLocale,
-                    supportedLocales: viewModel.supportedLocales
-                )
+                        // Language Section
+                        SpeechLanguageSection(
+                            selectedLocale: $viewModel.selectedLocale,
+                            supportedLocales: viewModel.supportedLocales
+                        )
 
-                // Features Section (Toggles)
-                SpeechFeaturesSection(
-                    useOnlyOnDevice: $viewModel.useOnlyOnDevice,
-                    autoPlayConfirmation: $viewModel.autoPlayConfirmation,
-                    capabilities: viewModel.capabilities
-                )
+                        // Features Section (Toggles)
+                        SpeechFeaturesSection(
+                            useOnlyOnDevice: $viewModel.useOnlyOnDevice,
+                            autoPlayConfirmation: $viewModel.autoPlayConfirmation,
+                            capabilities: viewModel.capabilities
+                        )
 
-                // Critical Error (Language not supported)
-                if let caps = viewModel.capabilities, !caps.isCriticalValid {
-                    WarningPieceView(text: "Speech recognition is not supported for this language.")
+                        // Critical Error (Language not supported)
+                        if let caps = viewModel.capabilities, !caps.isCriticalValid {
+                            WarningPieceView(
+                                text: "Speech recognition is not supported for this language."
+                            )
+                        }
+
+                        // Permissions
+                        if viewModel.missingPermissions {
+                            SpeechPermissionsSection(
+                                permissionManager: viewModel.permissionManager
+                            )
+                        }
+                    }
+                    // Add vertical padding so content doesn't touch the edges of the scroll view
+                    .padding(.vertical, 4)
                 }
+                .scrollBounceBehavior(.basedOnSize)
 
-                Spacer()
+                // removed the Spacer() because the ScrollView takes up available space
 
-                // Permissions
-                if viewModel.missingPermissions {
-                    SpeechPermissionsSection(
-                        permissionManager: viewModel.permissionManager
-                    )
-                }
-                // Save button
+                // The Save button remains OUTSIDE the ScrollView
+                // This keeps it pinned to the bottom (Sticky Footer)
                 ConfigurationActionButton(
                     isEnabled: viewModel.canSave,
                     isProcessing: viewModel.isSaving,
                     action: viewModel.save
                 )
-                Spacer()
+                .padding(.top, 8)
             }
         )
     }

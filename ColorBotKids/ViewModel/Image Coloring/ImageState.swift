@@ -35,13 +35,3 @@ enum ImageState: Equatable {
         return nil
     }
 }
-
-struct DrawingState: Equatable {
-    var canUndo: Bool = false
-    var canRedo: Bool = false
-    var hasContent: Bool = false
-
-    var hasChanges: Bool {
-        hasContent
-    }
-}

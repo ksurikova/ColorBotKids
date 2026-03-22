@@ -25,12 +25,20 @@ struct ConfigurationActionButton: View {
     }
 
     var body: some View {
-        Button(title, action: action)
-            .buttonStyle(.primary)
-            .disabled(!isEnabled || isProcessing)
+        Button(action: action) {
+            HStack {
+                if isProcessing {
+                    ProgressView()
+                        .tint(.white)
+                }
+                Text(title)
+            }
+        }
+        .buttonStyle(.primary)
+        .disabled(!isEnabled || isProcessing)
     }
 }
 
-#Preview() {
+#Preview("active") {
     ConfigurationActionButton(action: {})
 }

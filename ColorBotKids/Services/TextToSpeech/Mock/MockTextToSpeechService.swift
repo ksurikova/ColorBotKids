@@ -8,6 +8,19 @@ import Foundation
 
 final class MockTextToSpeechService: TextToSpeechService {
     static var isAvailableOverride: Bool?
+
+    // MARK: - Static configuration for tests or previews
+
+    static func configure(isAvailable: Bool? = nil) {
+        if let isAvailable = isAvailable {
+            isAvailableOverride = isAvailable
+        }
+    }
+
+    static func reset() {
+        isAvailableOverride = nil
+    }
+
     var onDidFailToPlay: (() -> Void)?
     var onStartSpeaking: (() -> Void)?
     var onVolumeWarning: ((VolumeWarningLevel) -> Void)?

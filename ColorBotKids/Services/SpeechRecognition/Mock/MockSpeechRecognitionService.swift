@@ -36,6 +36,23 @@ final class MockSpeechRecognitionService: SpeechRecognitionService {
 
     static var canCreateWithCurrentSettingsResponse: Bool = false
 
+    static func configure(supportedLocales: [Locale]? = nil, canCreate: Bool? = nil) {
+        if let locales = supportedLocales {
+            self.supportedLocales = locales
+        }
+        if let canCreate = canCreate {
+            canCreateWithCurrentSettingsResponse = canCreate
+        }
+    }
+
+    static func reset() {
+        supportedLocales = [
+            Locale(identifier: "en-US"),
+            Locale(identifier: "fr-FR"),
+        ]
+        canCreateWithCurrentSettingsResponse = false
+    }
+
     func startRecognition() throws {
         // do nothing
     }

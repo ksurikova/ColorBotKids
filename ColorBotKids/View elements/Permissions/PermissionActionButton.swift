@@ -51,8 +51,8 @@ struct PermissionActionButton: View {
                     .font(.system(size: 13, weight: .semibold))
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(config.color)

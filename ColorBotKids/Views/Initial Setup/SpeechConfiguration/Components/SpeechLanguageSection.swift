@@ -11,17 +11,25 @@ struct SpeechLanguageSection: View {
     let supportedLocales: [Locale]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("settings_label_language").plainStyle()
-                Spacer()
-                Picker("", selection: $selectedLocale) {
-                    ForEach(supportedLocales, id: \.identifier) { locale in
-                        Text(locale.localizedDisplayName).tag(locale)
-                    }
+        HStack {
+            Text("settings_label_language").plainStyle()
+            Picker("", selection: $selectedLocale) {
+                ForEach(supportedLocales, id: \.identifier) { locale in
+                    Text(locale.localizedDisplayName).tag(locale)
                 }
-                .defaultStyle()
             }
+            .defaultStyle()
         }
     }
+}
+
+#Preview {
+    SpeechLanguageSection(
+        selectedLocale: Binding.constant(Locale(identifier: "en-US")),
+        supportedLocales: [
+            Locale(identifier: "en-US"),
+            Locale(identifier: "fr-FR"),
+            Locale(identifier: "ru-RU"),
+        ]
+    )
 }

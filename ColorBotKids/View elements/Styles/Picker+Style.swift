@@ -10,9 +10,8 @@ extension Picker {
     func defaultStyle() -> some View {
         pickerStyle(.menu)
             .tint(.black)
-            .padding(4)
             .background(Color(.systemGray6))
-            .cornerRadius(12)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 

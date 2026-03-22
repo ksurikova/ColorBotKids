@@ -10,10 +10,15 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SettingsViewModel
     let permissionManager: PermissionManager
+    let draftService: SpeechConfigurationDraftService
 
-    init(configManager: ConfigurationManager,
-         permissionManager: PermissionManager, draftService: SpeechConfigurationDraftService) {
+    init(
+        configManager: ConfigurationManager,
+        permissionManager: PermissionManager,
+        draftService: SpeechConfigurationDraftService
+    ) {
         self.permissionManager = permissionManager
+        self.draftService = draftService
         _viewModel = StateObject(wrappedValue: SettingsViewModel(
             configManager: configManager,
             permissionManager: permissionManager,
