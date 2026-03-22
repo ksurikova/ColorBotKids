@@ -105,8 +105,6 @@ final class SettingsViewModel: ObservableObject {
         // Perform Save
         do {
             try configManager.saveAllConfigurations(ai: aiConfig, speech: speechConfig)
-            // Save successful? Clear drafts now.
-            speechViewModel.clearDrafts()
         } catch {
             self.error =
                 (error as? AppError) ?? .configurationFailed(error.localizedDescription)

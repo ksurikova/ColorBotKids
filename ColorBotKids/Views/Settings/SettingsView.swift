@@ -51,7 +51,6 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("common_action_cancel") {
-                        viewModel.discardChanges()
                         dismiss()
                     }
                     .disabled(viewModel.isSaving)
@@ -70,6 +69,11 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+        .onDisappear {
+            // Ensure any unsaved drafts are cleared when the sheet is dismissed
+            // (e.g. by swipe gesture), matching "Cancel" button behavior.
+            viewModel.discardChanges()
         }
     }
 }
