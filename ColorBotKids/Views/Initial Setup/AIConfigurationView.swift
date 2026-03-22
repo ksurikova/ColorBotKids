@@ -9,9 +9,12 @@ import SwiftUI
 struct AIConfigurationView: View {
     @StateObject private var viewModel: AIConfigurationViewModel
 
-    init(configManager: ConfigurationManager) {
+    init(configManager: ConfigurationManager, draftService: AIConfigurationDraftService? = nil) {
         _viewModel =
-            StateObject(wrappedValue: AIConfigurationViewModel(configManager: configManager))
+            StateObject(wrappedValue: AIConfigurationViewModel(
+                configManager: configManager,
+                draftService: draftService
+            ))
     }
 
     // MARK: - Body

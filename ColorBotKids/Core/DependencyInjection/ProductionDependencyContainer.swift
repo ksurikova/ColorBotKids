@@ -23,6 +23,7 @@ final class ProductionDependencyContainer: AppDependencyContainer {
     let contentViewModel: ContentViewModel
     let router: AppRouter
     let speechConfigurationDraftService: SpeechConfigurationDraftService
+    let aiConfigurationDraftService: AIConfigurationDraftService
 
     init() {
         // 1. Core Service Types
@@ -71,6 +72,7 @@ final class ProductionDependencyContainer: AppDependencyContainer {
         )
 
         speechConfigurationDraftService = LocalSpeechDraftService()
+        aiConfigurationDraftService = LocalAIDraftService()
 
         // 5. Build View Models & Router
         contentViewModel = ContentViewModel(
@@ -86,7 +88,8 @@ final class ProductionDependencyContainer: AppDependencyContainer {
             sessionManager: sessionManager,
             imageToolingManager: imageToolingManager,
             settingsService: settingsService,
-            speechConfigurationDraftService: speechConfigurationDraftService
+            speechConfigurationDraftService: speechConfigurationDraftService,
+            aiConfigurationDraftService: aiConfigurationDraftService
         )
     }
 

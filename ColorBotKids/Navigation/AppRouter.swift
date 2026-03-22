@@ -28,6 +28,7 @@ final class AppRouter: ObservableObject {
     private let imageToolingManager: ImageToolingManager
     private let settingsService: SettingsService
     private let speechConfigurationDraftService: SpeechConfigurationDraftService
+    private let aiConfigurationDraftService: AIConfigurationDraftService
 
     private lazy var editorPersistenceInteractor: EditorPersistenceInteractor =
         .init(sessionManager: sessionManager)
@@ -51,7 +52,8 @@ final class AppRouter: ObservableObject {
         sessionManager: SessionManager,
         imageToolingManager: ImageToolingManager,
         settingsService: SettingsService,
-        speechConfigurationDraftService: SpeechConfigurationDraftService
+        speechConfigurationDraftService: SpeechConfigurationDraftService,
+        aiConfigurationDraftService: AIConfigurationDraftService
     ) {
         self.mainServicesManager = mainServicesManager
         self.permissionManager = permissionManager
@@ -59,6 +61,7 @@ final class AppRouter: ObservableObject {
         self.imageToolingManager = imageToolingManager
         self.settingsService = settingsService
         self.speechConfigurationDraftService = speechConfigurationDraftService
+        self.aiConfigurationDraftService = aiConfigurationDraftService
 
         setupObservers()
     }
@@ -154,7 +157,10 @@ final class AppRouter: ObservableObject {
                 descriptionMessage: String(localized: "onboarding_message_preparingApp")
             )
         case .aiConfiguration:
-            AIConfigurationView(configManager: configurationManager)
+            AIConfigurationView(
+                configManager: configurationManager,
+                draftService: aiConfigurationDraftService
+            )
         case .speechConfiguration:
             SpeechConfigurationView(
                 configManager: configurationManager,
@@ -175,6 +181,7 @@ final class AppRouter: ObservableObject {
                 configManager: configurationManager,
                 permissionManager: permissionManager,
                 draftService: speechConfigurationDraftService,
+                aiDraftService: aiConfigurationDraftService,
                 viewModel: speechViewModel()
             )
             .navigationDestination(for: Route.self) { route in

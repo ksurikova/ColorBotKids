@@ -20,6 +20,8 @@ final class SettingsViewModel: ObservableObject {
     private let configManager: ConfigurationManager
     let permissionManager: PermissionManager
     let draftService: SpeechConfigurationDraftService
+    let aiDraftService: AIConfigurationDraftService
+
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Output State
@@ -31,13 +33,19 @@ final class SettingsViewModel: ObservableObject {
     init(
         configManager: ConfigurationManager,
         permissionManager: PermissionManager,
-        draftService: SpeechConfigurationDraftService
+        draftService: SpeechConfigurationDraftService,
+        aiDraftService: AIConfigurationDraftService
     ) {
         self.configManager = configManager
         self.permissionManager = permissionManager
         self.draftService = draftService
+        self.aiDraftService = aiDraftService
+
         // Initialize Children
-        aiViewModel = AIConfigurationViewModel(configManager: configManager)
+        aiViewModel = AIConfigurationViewModel(
+            configManager: configManager,
+            draftService: aiDraftService
+        )
 
         // Use .settings mode: Don't block saving just because microphone permission is missing
         speechViewModel = SpeechConfigurationViewModel(
@@ -82,9 +90,10 @@ final class SettingsViewModel: ObservableObject {
 
     // MARK: - User Actions
 
-    // Call this when User taps "Cancel"
+    // Call this when User taps "Cancel" or swipes away
     func discardChanges() {
         speechViewModel.clearDrafts()
+        aiViewModel.clearDrafts()
     }
 
     // MARK: - Unified Save Strategy
@@ -105,6 +114,7 @@ final class SettingsViewModel: ObservableObject {
         // Perform Save
         do {
             try configManager.saveAllConfigurations(ai: aiConfig, speech: speechConfig)
+            // No need to clear drafts here, onDisappear will handle it upon dismissal
         } catch {
             self.error =
                 (error as? AppError) ?? .configurationFailed(error.localizedDescription)

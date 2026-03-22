@@ -16,6 +16,7 @@ protocol AppDependencyContainer {
     var contentViewModel: ContentViewModel { get }
     var router: AppRouter { get }
     var speechConfigurationDraftService: SpeechConfigurationDraftService { get }
+    var aiConfigurationDraftService: AIConfigurationDraftService { get }
 
     // Returns nil if supported, or an error message if unsupported
     static func systemUnavailabilityReason() -> String?

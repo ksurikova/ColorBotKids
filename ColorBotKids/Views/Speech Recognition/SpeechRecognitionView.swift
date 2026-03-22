@@ -8,20 +8,23 @@
 import SwiftUI
 
 struct SpeechRecognitionView: View {
-    let permissionManager: PermissionManager
     let configManager: ConfigurationManager
+    let permissionManager: PermissionManager
     let draftService: SpeechConfigurationDraftService
-    @ObservedObject private var viewModel: SpeechRecognitionViewModel
+    let aiDraftService: AIConfigurationDraftService
+    @ObservedObject var viewModel: SpeechRecognitionViewModel
 
     init(
         configManager: ConfigurationManager,
         permissionManager: PermissionManager,
         draftService: SpeechConfigurationDraftService,
+        aiDraftService: AIConfigurationDraftService,
         viewModel: SpeechRecognitionViewModel
     ) {
-        self.permissionManager = permissionManager
         self.configManager = configManager
+        self.permissionManager = permissionManager
         self.draftService = draftService
+        self.aiDraftService = aiDraftService
         self.viewModel = viewModel
     }
 
@@ -65,15 +68,16 @@ struct SpeechRecognitionView: View {
         .overlay(alignment: .top) {
             NotificationStackView(viewModel: viewModel)
         }
-        .sheet(isPresented: $viewModel.showSettings, onDismiss:
-            { viewModel.handleSettingsDismissed()
-            }, content: {
-                SettingsView(
-                    configManager: configManager,
-                    permissionManager: permissionManager,
-                    draftService: draftService
-                )
-            })
+        .sheet(isPresented: $viewModel.showSettings, onDismiss: {
+            viewModel.handleSettingsDismissed()
+        }, content: {
+            SettingsView(
+                configManager: configManager,
+                permissionManager: permissionManager,
+                draftService: draftService,
+                aiDraftService: aiDraftService
+            )
+        })
         .onDisappear {
             viewModel.ttsService?.stop()
         }

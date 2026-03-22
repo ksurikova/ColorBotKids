@@ -69,6 +69,7 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
             configManager: servicesManager.configurationManager,
             permissionManager: container.permissionManager,
             draftService: container.speechConfigurationDraftService,
+            aiDraftService: container.aiConfigurationDraftService,
             viewModel: viewModel
         )
         .previewDisplayName(name)

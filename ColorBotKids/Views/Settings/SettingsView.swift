@@ -11,18 +11,22 @@ struct SettingsView: View {
     @StateObject private var viewModel: SettingsViewModel
     let permissionManager: PermissionManager
     let draftService: SpeechConfigurationDraftService
+    let aiDraftService: AIConfigurationDraftService
 
     init(
         configManager: ConfigurationManager,
         permissionManager: PermissionManager,
-        draftService: SpeechConfigurationDraftService
+        draftService: SpeechConfigurationDraftService,
+        aiDraftService: AIConfigurationDraftService
     ) {
         self.permissionManager = permissionManager
         self.draftService = draftService
+        self.aiDraftService = aiDraftService
         _viewModel = StateObject(wrappedValue: SettingsViewModel(
             configManager: configManager,
             permissionManager: permissionManager,
-            draftService: draftService
+            draftService: draftService,
+            aiDraftService: aiDraftService
         ))
     }
 

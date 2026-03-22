@@ -26,6 +26,7 @@ final class MockDependencyContainer: AppDependencyContainer {
     let contentViewModel: ContentViewModel
     let router: AppRouter
     let speechConfigurationDraftService: SpeechConfigurationDraftService
+    let aiConfigurationDraftService: AIConfigurationDraftService
 
     // Add Configuration and Permission overrides to make previews effortless
     init(
@@ -77,6 +78,7 @@ final class MockDependencyContainer: AppDependencyContainer {
         )
 
         speechConfigurationDraftService = MockSpeechConfigurationDraftService()
+        aiConfigurationDraftService = MockAIConfigurationDraftService()
 
         // Managers
         let servicesFactory = MainServiceFactory(
@@ -118,7 +120,8 @@ final class MockDependencyContainer: AppDependencyContainer {
             sessionManager: sessionManager,
             imageToolingManager: imageToolingManager,
             settingsService: settingsService,
-            speechConfigurationDraftService: speechConfigurationDraftService
+            speechConfigurationDraftService: speechConfigurationDraftService,
+            aiConfigurationDraftService: aiConfigurationDraftService
         )
     }
 
