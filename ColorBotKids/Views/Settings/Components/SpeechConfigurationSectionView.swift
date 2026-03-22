@@ -22,10 +22,10 @@ struct SpeechConfigurationSectionView: View {
             SpeechFeaturesSection(
                 useOnlyOnDevice: $viewModel.useOnlyOnDevice,
                 autoPlayConfirmation: $viewModel.autoPlayConfirmation,
-                capabilities: viewModel.capabilities
+                capabilities: viewModel.state.content.capabilities
             )
 
-            if let caps = viewModel.capabilities, !caps.isCriticalValid {
+            if let caps = viewModel.state.content.capabilities, !caps.isCriticalValid {
                 WarningPieceView(text: "speech_error_languageNotSupported")
             }
         }

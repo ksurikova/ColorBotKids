@@ -29,7 +29,7 @@ struct SpeechConfigurationView: View {
 
     var body: some View {
         ConfigurationContainerView(
-            error: viewModel.error.map { $0 as Error },
+            error: viewModel.state.error.map { $0 as Error },
             onDismissError: viewModel.dismissError,
             content: {
                 // Wrap the informational content in a ScrollView
@@ -50,18 +50,18 @@ struct SpeechConfigurationView: View {
                         SpeechFeaturesSection(
                             useOnlyOnDevice: $viewModel.useOnlyOnDevice,
                             autoPlayConfirmation: $viewModel.autoPlayConfirmation,
-                            capabilities: viewModel.capabilities
+                            capabilities: viewModel.state.content.capabilities
                         )
 
                         // Critical Error (Language not supported)
-                        if let caps = viewModel.capabilities, !caps.isCriticalValid {
+                        if let caps = viewModel.state.content.capabilities, !caps.isCriticalValid {
                             WarningPieceView(
                                 text: "Speech recognition is not supported for this language."
                             )
                         }
 
                         // Permissions
-                        if viewModel.missingPermissions {
+                        if viewModel.state.content.missingPermissions {
                             SpeechPermissionsSection(
                                 permissionManager: viewModel.permissionManager
                             )
@@ -77,8 +77,8 @@ struct SpeechConfigurationView: View {
                 // The Save button remains OUTSIDE the ScrollView
                 // This keeps it pinned to the bottom (Sticky Footer)
                 ConfigurationActionButton(
-                    isEnabled: viewModel.canSave,
-                    isProcessing: viewModel.isSaving,
+                    isEnabled: viewModel.state.content.canSave,
+                    isProcessing: viewModel.state.isSaving,
                     action: viewModel.save
                 )
                 .padding(.top, 8)

@@ -9,9 +9,42 @@ import SwiftUI
 
 @MainActor
 final class SpeechConfigurationViewModel: ObservableObject {
+    // MARK: - Types
+
     enum ConfigurationMode {
-        case onboarding // Strict: Must have permissions to be "valid"
-        case settings // Relaxed: Can be valid even without permissions
+        case onboarding
+        case settings
+    }
+
+    struct Content: Equatable {
+        var capabilities: SpeechCapabilities?
+        var missingPermissions: Bool = false
+        var canSave: Bool = false
+        var warningMessage: String?
+    }
+
+    enum ScreenState: Equatable {
+        case loading
+        case content(Content)
+        case saving(Content)
+        case error(AppError, Content)
+
+        var content: Content {
+            switch self {
+            case .loading: return Content()
+            case let .content(c), let .saving(c), let .error(_, c): return c
+            }
+        }
+
+        var isSaving: Bool {
+            if case .saving = self { return true }
+            return false
+        }
+
+        var error: AppError? {
+            if case let .error(err, _) = self { return err }
+            return nil
+        }
     }
 
     // MARK: - Dependencies
@@ -31,12 +64,15 @@ final class SpeechConfigurationViewModel: ObservableObject {
 
     // MARK: - Output State
 
-    @Published private(set) var capabilities: SpeechCapabilities?
-    @Published private(set) var isSaving: Bool = false
-    @Published private(set) var error: AppError?
-    @Published private(set) var warningMessage: String?
-    @Published private(set) var missingPermissions: Bool = true
-    @Published private(set) var canSave: Bool = false
+    @Published var state: ScreenState = .loading
+
+    var supportedLocales: [Locale] {
+        configManager.getCapableLocales()
+    }
+
+    // Compatibility properties
+    var canSave: Bool { state.content.canSave }
+    var error: AppError? { state.error }
 
     // MARK: - Initialization
 
@@ -73,62 +109,74 @@ final class SpeechConfigurationViewModel: ObservableObject {
     // MARK: - Pipelines
 
     private func setupPipelines() {
-        setupLocalePipeline()
-        setupPermissionPipeline()
-        setupValidationPipeline()
+        let capabilitiesPublisher = $selectedLocale
+            .map { [configManager] locale in
+                configManager.resolveCapabilities(for: locale)
+            }
+
+        let permissionsPublisher = Publishers.CombineLatest(
+            permissionManager.microphone,
+            permissionManager.speechRecognition
+        )
+
+        Publishers.CombineLatest(capabilitiesPublisher, permissionsPublisher)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] caps, perms in
+                self?.handleStateUpdate(capabilities: caps, permissions: perms)
+            }
+            .store(in: &cancellables)
+
         // Only enable Draft Saving in Settings mode
         if mode == .settings {
             setupDraftAutoSavePipeline()
         }
     }
 
-    private func setupLocalePipeline() {
-        $selectedLocale
-            .map { [configManager] locale in
-                configManager.resolveCapabilities(for: locale)
-            }
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] caps in
-                guard let self = self else { return }
-                self.capabilities = caps
-                // Force toggle consistency based on capabilities
-                if !caps.onDeviceAvailable { self.useOnlyOnDevice = false }
-                if !caps.ttsAvailable { self.autoPlayConfirmation = false }
-
-                self.warningMessage = caps
-                    .isCriticalValid ? nil : String(localized: "speech_warning_notSupported")
-            }
-            .store(in: &cancellables)
-    }
-
-    private func setupPermissionPipeline() {
-        Publishers.CombineLatest(
-            permissionManager.microphone,
-            permissionManager.speechRecognition
-        )
-        .map { mic, speech in
-            !(mic.isAuthorized && speech.isAuthorized)
+    private func handleStateUpdate(
+        capabilities: SpeechCapabilities,
+        permissions: (PermissionStatus, PermissionStatus)
+    ) {
+        // 1. Handle Side Effects on Input (Toggles)
+        if !capabilities.onDeviceAvailable, useOnlyOnDevice {
+            useOnlyOnDevice = false
         }
-        .receive(on: DispatchQueue.main)
-        .assign(to: &$missingPermissions)
+        if !capabilities.ttsAvailable, autoPlayConfirmation {
+            autoPlayConfirmation = false
+        }
+
+        // 2. Prepare Data
+        let newContent = makeContent(capabilities: capabilities, permissions: permissions)
+
+        // 3. Update State (Preserving current mode if saving/error)
+        switch state {
+        case .loading, .content:
+            state = .content(newContent)
+        case .saving:
+            state = .saving(newContent)
+        case let .error(err, _):
+            state = .error(err, newContent)
+        }
     }
 
-    private func setupValidationPipeline() {
-        // Can save if: Capabilities are valid AND permissions are granted (if strictly required)
-        Publishers.CombineLatest($capabilities, $missingPermissions)
-            .map { [mode] caps, isMissing in
-                let isCriticalValid = caps?.isCriticalValid ?? false
-                switch mode {
-                case .onboarding:
-                    return isCriticalValid && !isMissing
-                case .settings:
-                    // In Settings, we allow saving valid config even if permissions are missing
-                    // (User might fix permissions later)
-                    return isCriticalValid
-                }
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: &$canSave)
+    private func makeContent(
+        capabilities: SpeechCapabilities,
+        permissions: (PermissionStatus, PermissionStatus)
+    ) -> Content {
+        let missingPermissions = !(permissions.0.isAuthorized && permissions.1.isAuthorized)
+        let isCriticalValid = capabilities.isCriticalValid
+
+        // Unified Logic: Always check permissions
+        let canSave = isCriticalValid && !missingPermissions
+
+        let warning = isCriticalValid ? nil :
+            String(localized: "speech_warning_notSupported")
+
+        return Content(
+            capabilities: capabilities,
+            missingPermissions: missingPermissions,
+            canSave: canSave,
+            warningMessage: warning
+        )
     }
 
     private func setupDraftAutoSavePipeline() {
@@ -148,19 +196,23 @@ final class SpeechConfigurationViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    // MARK: - Debug only
+
+    #if DEBUG
+        func stopPipelines() {
+            cancellables.removeAll()
+        }
+    #endif
+
     // MARK: - Public API for Parents
 
-    /// Returns the configuration object if valid, otherwise nil.
+    // Returns the configuration object if valid, otherwise nil.
     func buildConfiguration() -> SpeechConfiguration? {
         // Validation logic matches setupValidationPipeline
-        let isCriticalValid = capabilities?.isCriticalValid ?? false
+        let isCriticalValid = state.content.capabilities?.isCriticalValid ?? false
 
-        switch mode {
-        case .onboarding:
-            guard isCriticalValid, !missingPermissions else { return nil }
-        case .settings:
-            guard isCriticalValid else { return nil }
-        }
+        // Unified validation: Permissions are required
+        guard isCriticalValid, !state.content.missingPermissions else { return nil }
 
         return SpeechConfiguration(
             language: selectedLocale.identifier,
@@ -169,10 +221,8 @@ final class SpeechConfigurationViewModel: ObservableObject {
         )
     }
 
-    // MARK: - Actions
-
     func save() {
-        guard canSave else { return }
+        guard state.content.canSave else { return }
 
         // Construct the config
         let configToSave = SpeechConfiguration(
@@ -181,19 +231,19 @@ final class SpeechConfigurationViewModel: ObservableObject {
             autoPlayConfirmation: autoPlayConfirmation
         )
 
-        isSaving = true
-        error = nil
+        state = .saving(state.content)
         do {
             // Save to Permanent Storage
             try configManager.saveSpeechConfiguration(configToSave)
             // Clear Temporary Draft on success
             draftService.clearDraft()
+            state = .content(state.content)
         } catch {
-            self
-                .error = (error as? AppError) ??
-                .configurationFailed(error.localizedDescription)
+            state = .error(
+                (error as? AppError) ?? .configurationFailed(error.localizedDescription),
+                state.content
+            )
         }
-        isSaving = false
     }
 
     // Added for SettingsViewModel compatibility
@@ -202,10 +252,8 @@ final class SpeechConfigurationViewModel: ObservableObject {
     }
 
     func dismissError() {
-        error = nil
-    }
-
-    var supportedLocales: [Locale] {
-        configManager.getCapableLocales()
+        if case .error = state {
+            state = .content(state.content)
+        }
     }
 }
