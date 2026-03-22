@@ -10,15 +10,18 @@ import SwiftUI
 struct SpeechRecognitionView: View {
     let permissionManager: PermissionManager
     let configManager: ConfigurationManager
+    let draftService: SpeechConfigurationDraftService
     @ObservedObject private var viewModel: SpeechRecognitionViewModel
 
     init(
         configManager: ConfigurationManager,
         permissionManager: PermissionManager,
+        draftService: SpeechConfigurationDraftService,
         viewModel: SpeechRecognitionViewModel
     ) {
         self.permissionManager = permissionManager
         self.configManager = configManager
+        self.draftService = draftService
         self.viewModel = viewModel
     }
 
@@ -65,7 +68,11 @@ struct SpeechRecognitionView: View {
         .sheet(isPresented: $viewModel.showSettings, onDismiss:
             { viewModel.handleSettingsDismissed()
             }, content: {
-                SettingsView(configManager: configManager, permissionManager: permissionManager)
+                SettingsView(
+                    configManager: configManager,
+                    permissionManager: permissionManager,
+                    draftService: draftService
+                )
             })
         .onDisappear {
             viewModel.ttsService?.stop()

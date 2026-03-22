@@ -7,17 +7,23 @@
 import SwiftUI
 
 struct UnsupportedView: View {
+    var reason: String?
+
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "mic.slash")
-                .font(.system(size: 48))
-                .foregroundColor(.orange)
 
             Text("unsupported_title")
                 .font(.title)
 
-            Text("unsupported_message")
-                .multilineTextAlignment(.center)
+            if let reason = reason {
+                Text(reason)
+                    .multilineTextAlignment(.center)
+                    .padding()
+            } else {
+                Text("unsupported_message")
+                    .multilineTextAlignment(.center)
+            }
         }
         .padding()
     }

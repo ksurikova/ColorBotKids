@@ -7,17 +7,8 @@
 
 import SwiftUI
 
-struct AppDependencies {
-    let mainServicesManager: MainServicesManager
-    let permissionManager: PermissionManager
-    let sessionManager: SessionManager
-    let imageToolingManager: ImageToolingManager
-    let contentViewModel: ContentViewModel
-    let router: AppRouter
-}
-
 enum AppBootstrapState {
-    case supported(AppDependencies)
+    case supported(AppDependencyContainer)
     case unsupported(String)
 }
 
@@ -27,92 +18,30 @@ struct ColorBotKidsApp: App {
     private let bootstrapState: AppBootstrapState
 
     init() {
-        let speechServiceType = LiveSpeechRecognitionService.self
+        // Change this to MockDependencyContainer.self to test mocks
+        let containerType = ProductionDependencyContainer.self
 
-        // Check critical service immediately
-        guard speechServiceType.canRunApp() else {
-            bootstrapState = .unsupported(
-                speechServiceType
-                    .unavailabilityMessage() ?? String(localized: "common_error_appCannotStart")
-            )
-            return
+        // App.init() runs on the main thread, but the compiler doesn't know this implicitly.
+        // Since our containers are @MainActor (because they hold ViewModels), we must
+        // wrap their creation in assumeIsolated to satisfy Swift concurrency safety.
+        let state = MainActor.assumeIsolated {
+            if let errorMessage = containerType.systemUnavailabilityReason() {
+                return AppBootstrapState.unsupported(errorMessage)
+            } else {
+                return AppBootstrapState.supported(containerType.init())
+            }
         }
 
-        let ttsServiceType = AVTextToSpeechService.self
-        let imageFactory = LiveImageGenerationServiceFactory()
-
-        // Tooling Services
-        let drawService = DefaultDrawService()
-        let saveService = DefaultImageSaveService()
-        let settingsService = DefaultSettingsService()
-
-        let imageToolingManager = ImageToolingManager(
-            drawService: drawService,
-            saveService: saveService
-        )
-
-        let configStorage = CommonConfigurationStorage()
-        let stateStorage = UserDefaultsStateStorage()
-        let stateRestoration = DefaultStateRestorationService()
-        let permissionService = DefaultPermissionService()
-
-        // Create service factory
-        let servicesFactory = MainServiceFactory(
-            imageGenerationServiceFactory: imageFactory
-        )
-
-        let configManager = ConfigurationManager(
-            storage: configStorage,
-            resolver: SpeechCapabilityResolver(
-                speechService: speechServiceType, ttsService: ttsServiceType
-            )
-        )
-
-        let permissionManager = PermissionManager(service: permissionService)
-        let sessionManager = SessionManager(
-            stateStorage: stateStorage,
-            restorationService: stateRestoration
-        )
-
-        let servicesManager = MainServicesManager(
-            configurationManager: configManager,
-            servicesFactory: servicesFactory
-        )
-
-        let contentViewModel = ContentViewModel(
-            mainServicesManager: servicesManager,
-            permissionManager: permissionManager,
-            sessionManager: sessionManager,
-            imageToolingManager: imageToolingManager
-        )
-
-        let router = AppRouter(
-            mainServicesManager: servicesManager,
-            permissionManager: permissionManager,
-            sessionManager: sessionManager,
-            imageToolingManager: imageToolingManager,
-            settingsService: settingsService
-        )
-
-        let dependencies = AppDependencies(
-            mainServicesManager: servicesManager,
-            permissionManager: permissionManager,
-            sessionManager: sessionManager,
-            imageToolingManager: imageToolingManager,
-            contentViewModel: contentViewModel,
-            router: router
-        )
-        bootstrapState = .supported(dependencies)
+        bootstrapState = state
     }
 
     var body: some Scene {
         WindowGroup {
             switch bootstrapState {
-            case let .supported(dependencies):
-                ContentView(viewModel: dependencies.contentViewModel, router: dependencies.router)
-            // TODO: add reason to my view
-            case .unsupported:
-                UnsupportedView()
+            case let .supported(container):
+                ContentView(viewModel: container.contentViewModel, router: container.router)
+            case let .unsupported(reason):
+                UnsupportedView(reason: reason)
             }
         }
     }

@@ -12,11 +12,12 @@ struct SettingsView: View {
     let permissionManager: PermissionManager
 
     init(configManager: ConfigurationManager,
-         permissionManager: PermissionManager) {
+         permissionManager: PermissionManager, draftService: SpeechConfigurationDraftService) {
         self.permissionManager = permissionManager
         _viewModel = StateObject(wrappedValue: SettingsViewModel(
             configManager: configManager,
-            permissionManager: permissionManager
+            permissionManager: permissionManager,
+            draftService: draftService
         ))
     }
 

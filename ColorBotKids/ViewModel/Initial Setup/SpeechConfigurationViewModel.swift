@@ -43,7 +43,7 @@ final class SpeechConfigurationViewModel: ObservableObject {
     init(
         configManager: ConfigurationManager,
         permissionManager: PermissionManager,
-        draftService: SpeechConfigurationDraftService = LocalSpeechDraftService(),
+        draftService: SpeechConfigurationDraftService,
         mode: ConfigurationMode = .onboarding
     ) {
         self.configManager = configManager

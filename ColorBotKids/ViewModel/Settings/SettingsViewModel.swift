@@ -19,6 +19,7 @@ final class SettingsViewModel: ObservableObject {
 
     private let configManager: ConfigurationManager
     let permissionManager: PermissionManager
+    let draftService: SpeechConfigurationDraftService
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Output State
@@ -27,10 +28,14 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var error: AppError?
     @Published private(set) var canSave: Bool = false // Now reactive
 
-    init(configManager: ConfigurationManager, permissionManager: PermissionManager) {
+    init(
+        configManager: ConfigurationManager,
+        permissionManager: PermissionManager,
+        draftService: SpeechConfigurationDraftService
+    ) {
         self.configManager = configManager
         self.permissionManager = permissionManager
-
+        self.draftService = draftService
         // Initialize Children
         aiViewModel = AIConfigurationViewModel(configManager: configManager)
 
@@ -38,6 +43,7 @@ final class SettingsViewModel: ObservableObject {
         speechViewModel = SpeechConfigurationViewModel(
             configManager: configManager,
             permissionManager: permissionManager,
+            draftService: draftService,
             mode: .settings
         )
 

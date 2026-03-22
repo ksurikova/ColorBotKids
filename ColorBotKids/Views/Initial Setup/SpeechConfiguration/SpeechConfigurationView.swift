@@ -9,11 +9,16 @@ import SwiftUI
 struct SpeechConfigurationView: View {
     @StateObject private var viewModel: SpeechConfigurationViewModel
 
-    init(configManager: ConfigurationManager, permissionManager: PermissionManager) {
+    init(
+        configManager: ConfigurationManager,
+        permissionManager: PermissionManager,
+        draftService: SpeechConfigurationDraftService
+    ) {
         _viewModel =
             StateObject(wrappedValue: SpeechConfigurationViewModel(
                 configManager: configManager,
-                permissionManager: permissionManager
+                permissionManager: permissionManager,
+                draftService: draftService
             ))
     }
 

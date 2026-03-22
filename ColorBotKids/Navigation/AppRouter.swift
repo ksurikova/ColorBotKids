@@ -27,6 +27,7 @@ final class AppRouter: ObservableObject {
     private let sessionManager: SessionManager
     private let imageToolingManager: ImageToolingManager
     private let settingsService: SettingsService
+    private let speechConfigurationDraftService: SpeechConfigurationDraftService
 
     private lazy var editorPersistenceInteractor: EditorPersistenceInteractor =
         .init(sessionManager: sessionManager)
@@ -49,13 +50,15 @@ final class AppRouter: ObservableObject {
         permissionManager: PermissionManager,
         sessionManager: SessionManager,
         imageToolingManager: ImageToolingManager,
-        settingsService: SettingsService
+        settingsService: SettingsService,
+        speechConfigurationDraftService: SpeechConfigurationDraftService
     ) {
         self.mainServicesManager = mainServicesManager
         self.permissionManager = permissionManager
         self.sessionManager = sessionManager
         self.imageToolingManager = imageToolingManager
         self.settingsService = settingsService
+        self.speechConfigurationDraftService = speechConfigurationDraftService
 
         setupObservers()
     }
@@ -155,7 +158,8 @@ final class AppRouter: ObservableObject {
         case .speechConfiguration:
             SpeechConfigurationView(
                 configManager: configurationManager,
-                permissionManager: permissionManager
+                permissionManager: permissionManager,
+                draftService: speechConfigurationDraftService
             )
         case .photoPermission:
             PhotoPermissionsView(permissionManager: permissionManager)
@@ -170,6 +174,7 @@ final class AppRouter: ObservableObject {
             SpeechRecognitionView(
                 configManager: configurationManager,
                 permissionManager: permissionManager,
+                draftService: speechConfigurationDraftService,
                 viewModel: speechViewModel()
             )
             .navigationDestination(for: Route.self) { route in

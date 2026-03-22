@@ -16,6 +16,7 @@ private struct PreviewHelper {
     let permissionManager: PermissionManager
     let servicesManager: MainServicesManager // Keep reference to prevent dealloc if weak refs exist
     let sessionManager: SessionManager // Keep reference
+    let draftService: SpeechConfigurationDraftService
 
     init(state: MainActionState) {
         // 1. Storage & Configuration
@@ -38,6 +39,7 @@ private struct PreviewHelper {
             speechService: MockSpeechRecognitionService.self,
             ttsService: MockTextToSpeechService.self
         )
+        draftService = MockSpeechConfigurationDraftService()
 
         // 3. Managers
         configManager = ConfigurationManager(storage: storage, resolver: resolver)
@@ -130,6 +132,7 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
         return SpeechRecognitionView(
             configManager: helper.configManager,
             permissionManager: helper.permissionManager,
+            draftService: helper.draftService,
             viewModel: helper.viewModel
         )
         .previewDisplayName(name)
