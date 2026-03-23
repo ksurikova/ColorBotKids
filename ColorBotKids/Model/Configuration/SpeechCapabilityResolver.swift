@@ -13,7 +13,7 @@ struct SpeechCapabilities: Equatable {
     let onDeviceAvailable: Bool
     let ttsAvailable: Bool
 
-    // Helpful check for UI: Is this usable at all?
+    // Whether the minimum required capabilities for speech recognition are met.
     var isCriticalValid: Bool {
         speechAvailable
     }

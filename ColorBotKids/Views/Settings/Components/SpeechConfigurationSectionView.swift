@@ -16,18 +16,24 @@ struct SpeechConfigurationSectionView: View {
         ) {
             SpeechLanguageSection(
                 selectedLocale: $viewModel.selectedLocale,
-                supportedLocales: viewModel.supportedLocales
+                supportedLocales: viewModel.pickerLocales
             )
+
+            if let warning = viewModel.state.content.warningMessage {
+                CriticalErrorPieceView(
+                    title: "settings_errorTitle_speech",
+                    text: warning
+                )
+            }
 
             SpeechFeaturesSection(
                 useOnlyOnDevice: $viewModel.useOnlyOnDevice,
                 autoPlayConfirmation: $viewModel.autoPlayConfirmation,
                 capabilities: viewModel.state.content.capabilities
             )
-
-            if let caps = viewModel.state.content.capabilities, !caps.isCriticalValid {
-                WarningPieceView(text: "speech_error_languageNotSupported")
-            }
+            .disabled(viewModel.state.content.warningMessage != nil)
+            .opacity(viewModel.state.content.warningMessage == nil ? 1.0 : 0.5)
+            .animation(.easeInOut, value: viewModel.state.content.warningMessage)
         }
     }
 }

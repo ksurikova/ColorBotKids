@@ -32,7 +32,7 @@ struct SpeechConfigurationView_Previews: PreviewProvider {
                     canSave: false,
                     warningMessage: nil
                 )),
-                name: "Missing Permissions"
+                name: "Permissions"
             )
 
             // 4. Unsupported Language
@@ -46,7 +46,7 @@ struct SpeechConfigurationView_Previews: PreviewProvider {
                     canSave: false,
                     warningMessage: "Not Supported"
                 )),
-                name: "Unsupported Language"
+                name: "Inconsistent"
             )
 
             // 5. Saving

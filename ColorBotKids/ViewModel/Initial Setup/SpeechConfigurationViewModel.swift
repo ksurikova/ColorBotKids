@@ -20,7 +20,7 @@ final class SpeechConfigurationViewModel: ObservableObject {
         var capabilities: SpeechCapabilities?
         var missingPermissions: Bool = false
         var canSave: Bool = false
-        var warningMessage: String?
+        var warningMessage: LocalizedStringKey?
     }
 
     enum ScreenState: Equatable {
@@ -56,23 +56,30 @@ final class SpeechConfigurationViewModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
 
-    // MARK: - Input State
+    // MARK: - Input State (@Published)
 
     @Published var selectedLocale: Locale
-    @Published var useOnlyOnDevice: Bool = false
-    @Published var autoPlayConfirmation: Bool = false
+    @Published var useOnlyOnDevice: Bool
+    @Published var autoPlayConfirmation: Bool
 
     // MARK: - Output State
 
     @Published var state: ScreenState = .loading
 
-    var supportedLocales: [Locale] {
-        configManager.getCapableLocales()
+    // MARK: - Computed Properties for the View
+
+    // The list of locales the Picker should display.
+    // Guarantees that 'selectedLocale' is always present to avoid blank UI.
+    var pickerLocales: [Locale] {
+        let supported = configManager.getCapableLocales()
+        if !supported.contains(selectedLocale) {
+            return [selectedLocale] + supported
+        }
+        return supported
     }
 
-    // Compatibility properties
+    var supportedLocales: [Locale] { configManager.getCapableLocales() }
     var canSave: Bool { state.content.canSave }
-    var error: AppError? { state.error }
 
     // MARK: - Initialization
 
@@ -87,21 +94,24 @@ final class SpeechConfigurationViewModel: ObservableObject {
         self.draftService = draftService
         self.mode = mode
 
-        // Resolve Initial State (Priority: Draft > Live > Default)
-        let draft = draftService.loadDraft()
-        let live = configManager.configuration.speechConfig
-        let defaultLocale = configManager.getInitialLocale()
+        // 1. Resolve Data (Draft > Live > Default)
+        let savedConfig = draftService.loadDraft() ?? configManager.configuration.speechConfig
+        let supported = configManager.getCapableLocales()
 
-        // Initialize properties
-        if let config = draft ?? live {
-            selectedLocale = Locale(identifier: config.language)
-            useOnlyOnDevice = config.useOnlyOnDevice
-            autoPlayConfirmation = config.autoPlayConfirmation
+        let candidateLocale = savedConfig.map { Locale(identifier: $0.language) }
+            ?? configManager.getInitialLocale()
+
+        // 2. Auto-Fix: Ensure the initial selection is valid if possible
+        if supported.contains(candidateLocale) {
+            selectedLocale = candidateLocale
         } else {
-            selectedLocale = defaultLocale
-            useOnlyOnDevice = false
-            autoPlayConfirmation = false
+            // Fallback to first supported, or keep candidate if list is empty (handled by UI
+            // warning)
+            selectedLocale = supported.first ?? candidateLocale
         }
+
+        useOnlyOnDevice = savedConfig?.useOnlyOnDevice ?? false
+        autoPlayConfirmation = savedConfig?.autoPlayConfirmation ?? false
 
         setupPipelines()
     }
@@ -109,10 +119,9 @@ final class SpeechConfigurationViewModel: ObservableObject {
     // MARK: - Pipelines
 
     private func setupPipelines() {
+        // Pipeline 1: Watch Locale and Permissions to update UI state
         let capabilitiesPublisher = $selectedLocale
-            .map { [configManager] locale in
-                configManager.resolveCapabilities(for: locale)
-            }
+            .map { [configManager] in configManager.resolveCapabilities(for: $0) }
 
         let permissionsPublisher = Publishers.CombineLatest(
             permissionManager.microphone,
@@ -126,17 +135,32 @@ final class SpeechConfigurationViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Only enable Draft Saving in Settings mode
+        // Pipeline 2: Auto-Save Drafts (Only in Settings Mode)
         if mode == .settings {
-            setupDraftAutoSavePipeline()
+            Publishers.CombineLatest3($selectedLocale, $useOnlyOnDevice, $autoPlayConfirmation)
+                .dropFirst() // Ignore the initial setup values
+                .debounce(for: .seconds(0.5),
+                          scheduler: DispatchQueue.main) // Prevent spamming disk
+                .sink { [weak self] locale, device, autoPlay in
+                    let config = SpeechConfiguration(
+                        language: locale.identifier,
+                        useOnlyOnDevice: device,
+                        autoPlayConfirmation: autoPlay
+                    )
+                    self?.draftService.saveDraft(config)
+                }
+                .store(in: &cancellables)
         }
     }
+
+    // MARK: - State Management
 
     private func handleStateUpdate(
         capabilities: SpeechCapabilities,
         permissions: (PermissionStatus, PermissionStatus)
     ) {
-        // 1. Handle Side Effects on Input (Toggles)
+        // Auto-correct toggles if capabilities change (e.g. user picks a locale without On-Device
+        // support)
         if !capabilities.onDeviceAvailable, useOnlyOnDevice {
             useOnlyOnDevice = false
         }
@@ -144,10 +168,9 @@ final class SpeechConfigurationViewModel: ObservableObject {
             autoPlayConfirmation = false
         }
 
-        // 2. Prepare Data
         let newContent = makeContent(capabilities: capabilities, permissions: permissions)
 
-        // 3. Update State (Preserving current mode if saving/error)
+        // Update state while preserving 'saving' or 'error' context if necessary
         switch state {
         case .loading, .content:
             state = .content(newContent)
@@ -162,57 +185,23 @@ final class SpeechConfigurationViewModel: ObservableObject {
         capabilities: SpeechCapabilities,
         permissions: (PermissionStatus, PermissionStatus)
     ) -> Content {
-        let missingPermissions = !(permissions.0.isAuthorized && permissions.1.isAuthorized)
-        let isCriticalValid = capabilities.isCriticalValid
+        let hasPermissions = permissions.0.isAuthorized && permissions.1.isAuthorized
+        let isSupported = capabilities.isCriticalValid
 
-        // Unified Logic: Always check permissions
-        let canSave = isCriticalValid && !missingPermissions
-
-        let warning = isCriticalValid ? nil :
-            String(localized: "speech_warning_notSupported")
+        let shouldAllowSave = isSupported && (hasPermissions || mode == .settings)
 
         return Content(
             capabilities: capabilities,
-            missingPermissions: missingPermissions,
-            canSave: canSave,
-            warningMessage: warning
+            missingPermissions: !hasPermissions,
+            canSave: shouldAllowSave,
+            warningMessage: isSupported ? nil : "settings_errorDescription_speech"
         )
     }
 
-    private func setupDraftAutoSavePipeline() {
-        // Aggregate state changes and save to draft service
-        Publishers.CombineLatest3($selectedLocale, $useOnlyOnDevice, $autoPlayConfirmation)
-            .dropFirst() // Skip initial load
-            .sink { [weak self] locale, device, autoPlay in
-                guard let self = self else { return }
+    // MARK: - Actions
 
-                let config = SpeechConfiguration(
-                    language: locale.identifier,
-                    useOnlyOnDevice: device,
-                    autoPlayConfirmation: autoPlay
-                )
-                self.draftService.saveDraft(config)
-            }
-            .store(in: &cancellables)
-    }
-
-    // MARK: - Debug only
-
-    #if DEBUG
-        func stopPipelines() {
-            cancellables.removeAll()
-        }
-    #endif
-
-    // MARK: - Public API for Parents
-
-    // Returns the configuration object if valid, otherwise nil.
     func buildConfiguration() -> SpeechConfiguration? {
-        // Validation logic matches setupValidationPipeline
-        let isCriticalValid = state.content.capabilities?.isCriticalValid ?? false
-
-        // Unified validation: Permissions are required
-        guard isCriticalValid, !state.content.missingPermissions else { return nil }
+        guard state.content.canSave else { return nil }
 
         return SpeechConfiguration(
             language: selectedLocale.identifier,
@@ -221,10 +210,13 @@ final class SpeechConfigurationViewModel: ObservableObject {
         )
     }
 
+    func clearDrafts() {
+        draftService.clearDraft()
+    }
+
     func save() {
         guard state.content.canSave else { return }
 
-        // Construct the config
         let configToSave = SpeechConfiguration(
             language: selectedLocale.identifier,
             useOnlyOnDevice: useOnlyOnDevice,
@@ -232,28 +224,25 @@ final class SpeechConfigurationViewModel: ObservableObject {
         )
 
         state = .saving(state.content)
+
         do {
-            // Save to Permanent Storage
             try configManager.saveSpeechConfiguration(configToSave)
-            // Clear Temporary Draft on success
             draftService.clearDraft()
             state = .content(state.content)
         } catch {
-            state = .error(
-                (error as? AppError) ?? .configurationFailed(error.localizedDescription),
-                state.content
-            )
+            let appError = (error as? AppError) ?? .configurationFailed(error.localizedDescription)
+            state = .error(appError, state.content)
         }
-    }
-
-    // Added for SettingsViewModel compatibility
-    func clearDrafts() {
-        draftService.clearDraft()
     }
 
     func dismissError() {
         if case .error = state {
             state = .content(state.content)
         }
+    }
+
+    /// Used for Previews/Tests to stop automatic state updates
+    func stopPipelines() {
+        cancellables.removeAll()
     }
 }
