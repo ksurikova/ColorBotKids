@@ -26,55 +26,14 @@ final class ProductionDependencyContainer: AppDependencyContainer {
     let aiConfigurationDraftService: AIConfigurationDraftService
 
     init() {
-        // 1. Core Service Types
-        let speechServiceType = SpeechService.self
-        let ttsServiceType = AVTextToSpeechService.self
-        let imageFactory = LiveImageGenerationServiceFactory()
-
-        // 2. Tooling Services
-        let drawService = DefaultDrawService()
-        let saveService = DefaultImageSaveService()
-        let settingsService = DefaultSettingsService()
-
-        imageToolingManager = ImageToolingManager(
-            drawService: drawService,
-            saveService: saveService
-        )
-
-        // 3. Configuration & State
-        let configStorage = CommonConfigurationStorage()
-        let stateStorage = UserDefaultsStateStorage()
-        let stateRestoration = DefaultStateRestorationService()
-        let permissionService = DefaultPermissionService()
-
-        // 4. Managers
-        let servicesFactory = MainServiceFactory(
-            imageGenerationServiceFactory: imageFactory
-        )
-
-        // Dependency Injection for ConfigurationManager
-        let configManager = ConfigurationManager(
-            storage: configStorage,
-            resolver: SpeechCapabilityResolver(
-                speechService: speechServiceType, ttsService: ttsServiceType
-            )
-        )
-
-        permissionManager = PermissionManager(service: permissionService)
-        sessionManager = SessionManager(
-            stateStorage: stateStorage,
-            restorationService: stateRestoration
-        )
-
-        mainServicesManager = MainServicesManager(
-            configurationManager: configManager,
-            servicesFactory: servicesFactory
-        )
-
+        imageToolingManager = Self.makeToolingManager()
+        permissionManager = Self.makePermissionManager()
+        sessionManager = Self.makeSessionManager()
+        mainServicesManager = Self.makeMainServicesManager()
         speechConfigurationDraftService = LocalSpeechDraftService()
         aiConfigurationDraftService = LocalAIDraftService()
 
-        // 5. Build View Models & Router
+        // Build View Models & Router
         contentViewModel = ContentViewModel(
             mainServicesManager: mainServicesManager,
             permissionManager: permissionManager,
@@ -82,6 +41,7 @@ final class ProductionDependencyContainer: AppDependencyContainer {
             imageToolingManager: imageToolingManager
         )
 
+        let settingsService = DefaultSettingsService()
         router = AppRouter(
             mainServicesManager: mainServicesManager,
             permissionManager: permissionManager,
@@ -90,6 +50,57 @@ final class ProductionDependencyContainer: AppDependencyContainer {
             settingsService: settingsService,
             speechConfigurationDraftService: speechConfigurationDraftService,
             aiConfigurationDraftService: aiConfigurationDraftService
+        )
+    }
+
+    // MARK: - Factory Methods
+
+    private static func makeToolingManager() -> ImageToolingManager {
+        let drawService = DefaultDrawService()
+        let saveService = DefaultImageSaveService()
+
+        return ImageToolingManager(
+            drawService: drawService,
+            saveService: saveService
+        )
+    }
+
+    private static func makePermissionManager() -> PermissionManager {
+        let permissionService = DefaultPermissionService()
+        return PermissionManager(service: permissionService)
+    }
+
+    private static func makeSessionManager() -> SessionManager {
+        let stateStorage = UserDefaultsStateStorage()
+        let stateRestoration = DefaultStateRestorationService()
+
+        return SessionManager(
+            stateStorage: stateStorage,
+            restorationService: stateRestoration
+        )
+    }
+
+    private static func makeMainServicesManager() -> MainServicesManager {
+        let speechServiceType = SpeechService.self
+        let ttsServiceType = AVTextToSpeechService.self
+        let imageFactory = LiveImageGenerationServiceFactory()
+
+        let configStorage = CommonConfigurationStorage()
+
+        let servicesFactory = MainServiceFactory(
+            imageGenerationServiceFactory: imageFactory
+        )
+
+        let configManager = ConfigurationManager(
+            storage: configStorage,
+            resolver: SpeechCapabilityResolver(
+                speechService: speechServiceType, ttsService: ttsServiceType
+            )
+        )
+
+        return MainServicesManager(
+            configurationManager: configManager,
+            servicesFactory: servicesFactory
         )
     }
 

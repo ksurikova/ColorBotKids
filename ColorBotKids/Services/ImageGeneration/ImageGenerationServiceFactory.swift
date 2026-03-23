@@ -22,6 +22,14 @@ struct LiveImageGenerationServiceFactory: ImageGenerationServiceFactory {
     }
 }
 
+// factory to improve mock reliability by forcing mock service regardless of config
+struct ForcedMockImageGenerationServiceFactory: ImageGenerationServiceFactory {
+    func make(for config: AIConfiguration) -> ImageGenerationService {
+        // Always return Mock service, even if config is for OpenAI/StabilityAI
+        MockImageGenerationService(config: config.toImageGenerationConfig())
+    }
+}
+
 private struct ImageGenerationServiceFactoryKey: EnvironmentKey {
     static let defaultValue: ImageGenerationServiceFactory = LiveImageGenerationServiceFactory()
 }

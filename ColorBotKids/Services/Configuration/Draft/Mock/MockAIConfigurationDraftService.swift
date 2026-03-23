@@ -15,7 +15,7 @@ final class MockAIConfigurationDraftService: AIConfigurationDraftService {
     }
 
     func loadDraft() -> AIConfiguration? {
-        return storedDraft
+        storedDraft
     }
 
     func saveDraft(_ config: AIConfiguration) {
