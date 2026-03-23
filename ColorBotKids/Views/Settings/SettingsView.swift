@@ -30,6 +30,14 @@ struct SettingsView: View {
         ))
     }
 
+    // Init for Previews / Dependency Injection
+    init(viewModel: SettingsViewModel) {
+        permissionManager = viewModel.permissionManager
+        draftService = viewModel.draftService
+        aiDraftService = viewModel.aiDraftService
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
