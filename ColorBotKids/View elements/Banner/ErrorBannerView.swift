@@ -9,7 +9,6 @@ import SwiftUI
 struct ErrorBannerView: View {
     let message: String
     let action: () -> Void
-    @State private var isVisible = false
 
     var body: some View {
         HStack(spacing: 16) {
@@ -23,7 +22,12 @@ struct ErrorBannerView: View {
                 .lineLimit(3)
 
             Spacer()
-            CloseButton(isVisible: $isVisible, action: action)
+
+            Button(action: action) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.orange.opacity(0.8))
+                    .font(.title3)
+            }
         }
         .padding(16)
         .background(
@@ -36,13 +40,6 @@ struct ErrorBannerView: View {
         )
         .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: 8)
         .padding(.horizontal, 20)
-        .offset(y: isVisible ? 0 : -20)
-        .opacity(isVisible ? 1 : 0)
-        .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                isVisible = true
-            }
-        }
     }
 }
 

@@ -93,16 +93,28 @@ private extension ImageEditorContentView {
         let onDismissSuccess: () -> Void
 
         var body: some View {
-            Group {
+            VStack {
                 if let error = errorMessage {
                     ErrorBannerView(message: error, action: onDismissError)
-                        .padding(.top, 60)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 } else if showSuccess {
                     SuccessBannerView(
                         message: NSLocalizedString("color_message_successSaving", comment: ""),
                         onClose: onDismissSuccess
                     )
-                    .padding(.top, 60)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .padding(.top, 60) // Safe area padding
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: errorMessage != nil)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSuccess)
+            // Auto-dismiss the success banner after 3 seconds
+            .task(id: showSuccess) {
+                if showSuccess {
+                    try? await Task.sleep(for: .seconds(3))
+                    withAnimation {
+                        onDismissSuccess()
+                    }
                 }
             }
         }

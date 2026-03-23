@@ -77,7 +77,7 @@ final class AppRouter: ObservableObject {
         // 2. If there's an active session, push the editor immediately
         syncStackWithSession()
 
-        print("Router: Init finished. Root: \(rootRoute), Stack Depth: \(path.count)")
+        // print("Router: Init finished. Root: \(rootRoute), Stack Depth: \(path.count)")
     }
 
     private func setupObservers() {

@@ -8,6 +8,7 @@ import SwiftUI
 
 struct ConfigurationContainerView<Content: View>: View {
     let error: Error?
+    let duration: TimeInterval? = 2.0 // auto-dismiss time
     let onDismissError: () -> Void
     @ViewBuilder let content: Content
 
@@ -17,13 +18,28 @@ struct ConfigurationContainerView<Content: View>: View {
                 BaseBannerView(
                     message: error.localizedDescription,
                     icon: Image(systemName: "exclamationmark.triangle.fill"),
-                    duration: nil,
                     onClose: onDismissError
                 )
+                // The Transition: This tells SwiftUI how to insert/remove the view
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
+
             content
         }
         .padding()
+        // The Animation: This ensures the VStack slides other elements down smoothly
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: error != nil)
+        // The Timer Logic: Triggered whenever the error changes
+        .task(id: error?.localizedDescription) {
+            guard let error, let duration else { return }
+
+            try? await Task.sleep(for: .seconds(duration))
+
+            // Ensure we only dismiss if the error hasn't changed or been cleared already
+            withAnimation {
+                onDismissError()
+            }
+        }
     }
 }
 

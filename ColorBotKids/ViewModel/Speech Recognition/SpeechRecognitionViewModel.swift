@@ -7,15 +7,22 @@
 import Combine
 import SwiftUI
 
-enum TTSWarning: Equatable {
-    case volumeLow(VolumeWarningLevel)
-    case failedToPlay
+enum TTSWarning: Equatable, Identifiable {
+    case volumeLow(VolumeWarningLevel, id: UUID = UUID())
+    case failedToPlay(id: UUID = UUID())
+
+    var id: UUID {
+        switch self {
+        case let .volumeLow(_, id): return id
+        case let .failedToPlay(id): return id
+        }
+    }
 }
 
 extension TTSWarning {
     var bannerConfig: (icon: String, message: String) {
         switch self {
-        case let .volumeLow(level):
+        case let .volumeLow(level, _):
             return level.bannerConfig
         case .failedToPlay:
             return (
@@ -99,7 +106,7 @@ final class SpeechRecognitionViewModel: ObservableObject {
                 self?.ttsWarning = .volumeLow(level)
             },
             onDidFailToPlay: { [weak self] in
-                self?.ttsWarning = .failedToPlay
+                self?.ttsWarning = .failedToPlay()
             }
         )
     }
