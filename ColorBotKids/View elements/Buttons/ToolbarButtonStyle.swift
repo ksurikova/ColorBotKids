@@ -8,13 +8,30 @@ import SwiftUI
 
 struct ToolbarButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.horizontalSizeClass) private var sizeClass
     var color: Color
+
+    private var buttonSize: CGFloat {
+        sizeClass == .compact ? 36 : 50
+    }
+
+    private var fontSize: CGFloat {
+        sizeClass == .compact ? 16 : 24
+    }
+
+    private var shadowRadius: CGFloat {
+        sizeClass == .compact ? 4 : 8
+    }
+
+    private var shadowY: CGFloat {
+        sizeClass == .compact ? 2 : 4
+    }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 24, weight: .semibold))
+            .font(.system(size: fontSize, weight: .semibold))
             .foregroundColor(.white)
-            .frame(width: 50, height: 50)
+            .frame(width: buttonSize, height: buttonSize)
             .background(
                 Circle()
                     .fill(
@@ -28,9 +45,9 @@ struct ToolbarButtonStyle: ButtonStyle {
                     )
                     .shadow(
                         color: isEnabled ? color.opacity(0.4) : .clear,
-                        radius: 8,
+                        radius: shadowRadius,
                         x: 0,
-                        y: 4
+                        y: shadowY
                     )
             )
             .scaleEffect(configuration.isPressed ? 0.9 : 1.0)
