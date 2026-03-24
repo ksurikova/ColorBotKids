@@ -62,6 +62,16 @@ final class AIConfigurationViewModel: ObservableObject {
     }
 
     private func setupPipeline() {
+        // Reset API key when provider changes.
+        // We do this before the draft pipeline so the draft saves the clean state.
+        $selectedProvider
+            .dropFirst()
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.apiKey = ""
+            }
+            .store(in: &cancellables)
+
         // Auto-save draft on changes
         Publishers.CombineLatest($selectedProvider, $apiKey)
             .dropFirst() // Don't save initial state as draft immediately
@@ -105,13 +115,5 @@ final class AIConfigurationViewModel: ObservableObject {
         guard isValid else { return nil }
         let keyToSave = requiresApiKey ? apiKey : AppConstants.mockAPIKey
         return AIConfiguration(provider: selectedProvider, apiKey: keyToSave)
-    }
-
-    // Call this when the view disappears to reset the key if the provider doesn't need it,
-    // or bind it to the picker change.
-    func sanitizeState() {
-        if !requiresApiKey {
-            apiKey = ""
-        }
     }
 }

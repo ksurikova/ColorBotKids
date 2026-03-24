@@ -19,9 +19,6 @@ struct AIConfigurationSectionView: View {
                     Text(provider.displayName).tag(provider)
                 }
             }
-            .onChange(of: viewModel.selectedProvider) {
-                viewModel.sanitizeState()
-            }
 
             if viewModel.requiresApiKey {
                 APIKeyFieldView(placeholder: "settings_label_apiKey", text: $viewModel.apiKey)
