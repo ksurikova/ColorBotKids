@@ -5,12 +5,15 @@
 //  Created by ksurikova on 4.02.2026.
 //
 import SwiftUI
+import Combine
 
 final class MainServicesManager {
     // MARK: - Dependencies
 
     let configurationManager: ConfigurationManager
     private let servicesFactory: MainServiceFactory
+    
+    private var cancellables = Set<AnyCancellable>()
 
     init(
         configurationManager: ConfigurationManager,
@@ -18,6 +21,13 @@ final class MainServicesManager {
     ) {
         self.configurationManager = configurationManager
         self.servicesFactory = servicesFactory
+        
+        configurationManager.configurationSaved
+            .sink { [weak self] in
+                // Invalidate services so next time they are requested, they are recreated with new config
+                self?.services = nil
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Services (Created on-demand)
@@ -29,14 +39,6 @@ final class MainServicesManager {
     // The helper to actually trigger creation from the UI
     func prepareServices() throws {
         try createServicesIfNeeded()
-    }
-
-    // Recreates services (useful when configuration changes)
-    func recreateServices() throws {
-        services = try servicesFactory.createServices(
-            configuration: configurationManager.configuration,
-            resolver: configurationManager.resolver
-        )
     }
 
     func configureTTSCallbacks(

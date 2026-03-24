@@ -47,7 +47,6 @@ final class SpeechRecognitionViewModel: ObservableObject {
 
     @Published var ttsWarning: TTSWarning?
 
-    private var serviceNeedsRecreation = false
     private var cancellables = Set<AnyCancellable>()
 
     // Accessors for the services safely
@@ -77,13 +76,6 @@ final class SpeechRecognitionViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // sign up for configuration changing
-        servicesManager.configurationManager.configurationSaved
-            .receive(on: RunLoop.main)
-            .sink { [weak self] in
-                self?.serviceNeedsRecreation = true
-            }
-            .store(in: &cancellables)
         // Start the lifecycle
         prepare()
     }
@@ -223,9 +215,10 @@ final class SpeechRecognitionViewModel: ObservableObject {
         let promptToRestore = state.recognizedText
         let wasConfigurationRequired = state.configurationRequiredMessage != nil
 
-        if serviceNeedsRecreation {
+        // If services returned to nil (invalidated by Manager due to config change), we must
+        // rebuild them
+        if servicesManager.services == nil {
             prepare()
-            serviceNeedsRecreation = false
         }
 
         // If we were blocked by configuration, and coming back from settings,
