@@ -1,35 +1,33 @@
 //
-//  RecognitionState.swift
+//  MainActionState.swift
 //  ColorBotKids
 //
 //  Created by ksurikova on 25.10.2025.
 //
+
 enum MainActionState: Equatable {
     case preparingServices // App is building the engines
     case waiting // Ready for user input
     case processingSpeech // Recording audio
     case analysingSpeech // Waiting for transcription
+
+    // Success flow
     case speechRecognized(String) // Text ready to display
     case generatingImage(from: String) // Hitting the AI API
-    case error(String) // Recoverable error (banner)
-    case fatalError(AppError) // Non-recoverable (blocks UI)
 
-    // UI helpers
-    var isBlocked: Bool {
-        switch self {
-        case .preparingServices, .fatalError, .analysingSpeech, .generatingImage, .processingSpeech:
-            return true
-        default:
-            return false
-        }
-    }
+    // Error flow - carrying the prompt ensures the UI doesn't flicker to empty
+    case temporaryError(String, prompt: String?)
+
+    // Specific state for Auth issues that blocks the main button but enables Settings
+    case configurationRequired(String, prompt: String?)
+    case fatalError(AppError)
 
     var isProcessing: Bool {
         switch self {
-        case .error, .speechRecognized, .waiting, .generatingImage, .preparingServices, .fatalError:
-            return false
         case .processingSpeech, .analysingSpeech:
             return true
+        default:
+            return false
         }
     }
 
@@ -41,9 +39,9 @@ enum MainActionState: Equatable {
     }
 
     var canToggleRecognition: Bool {
-        // You can only record if the app is ready and not currently busy with AI/Analysis
         switch self {
-        case .waiting, .processingSpeech, .speechRecognized, .error:
+        // Allow recording to restart from error states
+        case .waiting, .processingSpeech, .speechRecognized, .temporaryError:
             return true
         default:
             return false
@@ -51,16 +49,33 @@ enum MainActionState: Equatable {
     }
 
     var errorMessage: String? {
-        if case let .error(message) = self {
+        switch self {
+        case let .temporaryError(message, _):
             return message
+        default:
+            return nil
         }
-        return nil
+    }
+
+    var configurationRequiredMessage: String? {
+        switch self {
+        case let .configurationRequired(message, _):
+            return message
+        default:
+            return nil
+        }
     }
 
     var recognizedText: String? {
-        if case let .speechRecognized(text) = self { return text }
-        if case let .generatingImage(from: text) = self { return text }
-        return nil
+        switch self {
+        case let .speechRecognized(text), let .generatingImage(from: text):
+            return text
+        // If an image generation failed, we still want to see what prompt failed
+        case let .temporaryError(_, prompt), let .configurationRequired(_, prompt):
+            return prompt
+        default:
+            return nil
+        }
     }
 
     var speechText: String? {

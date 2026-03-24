@@ -35,9 +35,10 @@ struct SpeechRecognitionView: View {
             VStack {
                 HStack {
                     Spacer()
-                    SettingsButtonView(showSettings: $viewModel.showSettings)
-                        .disabled(viewModel.state.isBlocked)
-                        .opacity(viewModel.state.isBlocked ? 0.5 : 1.0)
+                    SettingsButtonView(
+                        showSettings: $viewModel.showSettings,
+                        state: viewModel.state
+                    )
                 }
                 .padding()
 
@@ -65,7 +66,9 @@ struct SpeechRecognitionView: View {
                 LoadingOverlayView(message: String(localized: "main_message_loadingImage"))
             }
         }
-        .overlay(alignment: .top) {
+        .safeAreaInset(edge: .top) {
+            // This automatically respects the safe area and pushes your
+            // main content down so it doesn't overlap
             NotificationStackView(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.showSettings, onDismiss: {

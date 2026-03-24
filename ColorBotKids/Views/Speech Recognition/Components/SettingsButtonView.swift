@@ -8,6 +8,16 @@ import SwiftUI
 
 struct SettingsButtonView: View {
     @Binding var showSettings: Bool
+    let state: MainActionState
+
+    private var isDisabled: Bool {
+        switch state {
+        case .preparingServices, .fatalError, .analysingSpeech, .generatingImage, .processingSpeech:
+            return true
+        case .configurationRequired, .temporaryError, .waiting, .speechRecognized:
+            return false
+        }
+    }
 
     var body: some View {
         HStack {
@@ -16,15 +26,15 @@ struct SettingsButtonView: View {
                 showSettings = true
             } label: {
                 Image(systemName: "gearshape.fill")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
-                    .padding()
             }
+            .buttonStyle(.glassyIcon(color: .secondary))
+            .disabled(isDisabled)
+            .opacity(isDisabled ? 0.5 : 1.0)
         }
         .padding(.top, 40)
     }
 }
 
 #Preview("") {
-    SettingsButtonView(showSettings: .constant(true))
+    SettingsButtonView(showSettings: .constant(true), state: .waiting)
 }

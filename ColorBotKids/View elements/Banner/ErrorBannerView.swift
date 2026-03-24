@@ -17,11 +17,7 @@ struct ErrorBannerView: View {
                 .foregroundStyle(.orange)
 
             Text(message)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(.primary)
-                .lineLimit(3)
-
-            Spacer()
+                .bannerMessageStyle()
 
             Button(action: action) {
                 Image(systemName: "xmark.circle.fill")
@@ -29,16 +25,7 @@ struct ErrorBannerView: View {
                     .font(.title3)
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThickMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(.orange.opacity(0.5), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: 8)
+        .glassyBannerStyle(borderColor: .orange)
         .padding(.horizontal, 20)
     }
 }

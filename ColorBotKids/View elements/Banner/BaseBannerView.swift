@@ -1,5 +1,5 @@
 //
-//  BaseBannerView.swift
+//  AppError.swift
 //  ColorBotKids
 //
 //  Created by ksurikova on 23.03.2026.
@@ -18,11 +18,7 @@ struct BaseBannerView: View {
                 .foregroundColor(.orange)
 
             Text(message)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(.primary)
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .bannerMessageStyle()
 
             if let onClose {
                 Button(action: onClose) {
@@ -32,16 +28,7 @@ struct BaseBannerView: View {
                 }
             }
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThickMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(.orange.opacity(0.5), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .glassyBannerStyle(borderColor: .orange)
         .padding(.horizontal, 20)
     }
 }

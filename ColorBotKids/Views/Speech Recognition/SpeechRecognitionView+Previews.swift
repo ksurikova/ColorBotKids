@@ -11,31 +11,43 @@ import SwiftUI
 struct SpeechRecognitionView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            // 1. Idle / Waiting
+            // Idle / Waiting
             previewFor(state: .waiting, name: "Waiting")
 
-            // 2. Processing (Recording)
+            // Processing (Recording)
             previewFor(state: .processingSpeech, name: "Recording")
 
-            // 3. Analyzing
+            // Analyzing
             previewFor(state: .analysingSpeech, name: "Analyzing")
 
-            // 4. Recognized
+            // Recognized
             previewFor(
                 state: .speechRecognized("A cute blue robot jumping on a cloud"),
                 name: "Recognized"
             )
 
-            // 5. Generating
+            // Generating
             previewFor(state: .generatingImage(from: "A cute blue robot"), name: "Generating")
 
-            // 6. Error
+            // Temporary Error
             previewFor(
-                state: .error("Something went wrong with the microphone"),
+                state: .temporaryError(
+                    "Something went wrong with the microphone",
+                    prompt: "A cute blue robot jumping on a cloud"
+                ),
                 name: "Error Banner"
             )
 
-            // 7. Fatal Error
+            // Settngs Needed Error
+            previewFor(
+                state: .configurationRequired(
+                    "Check your settings and try again",
+                    prompt: "A cute blue robot jumping on a cloud"
+                ),
+                name: "Fix Configuration"
+            )
+
+            // Fatal Error
             previewFor(
                 state: .fatalError(.serviceCreationFailed("Mock failure")),
                 name: "Fatal Error"

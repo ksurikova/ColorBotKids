@@ -113,8 +113,6 @@ final class SpeechRecognitionViewModel: ObservableObject {
 
     func toggleRecording() async {
         guard state.canToggleRecognition else { return }
-
-        // Use the services from the model safely
         guard let speechService = speechService else {
             state =
                 .fatalError(
@@ -123,13 +121,16 @@ final class SpeechRecognitionViewModel: ObservableObject {
             return
         }
 
-        // we need to handle: .waiting, .processingSpeech, .speechRecognized, .error
         if state == .processingSpeech {
             state = .analysingSpeech
             do {
                 let text = try await speechService.stopRecognition()
                 guard !text.isEmpty else {
-                    state = .error(String(localized: "speech_error_noSpeechDetected"))
+                    // Start fresh, no prompt to preserve
+                    state = .temporaryError(
+                        String(localized: "speech_error_noSpeechDetected"),
+                        prompt: nil
+                    )
                     return
                 }
                 state = .speechRecognized(text)
@@ -137,15 +138,31 @@ final class SpeechRecognitionViewModel: ObservableObject {
                     speakCurrentText()
                 }
             } catch {
-                state = .error(Helpers.formatError(error))
+                state = .temporaryError(Helpers.formatError(error), prompt: nil)
             }
         } else {
             do {
                 state = .processingSpeech
                 try speechService.startRecognition()
             } catch {
-                state = .error(Helpers.formatError(error))
+                state = .temporaryError(Helpers.formatError(error), prompt: nil)
             }
+        }
+    }
+
+    func clearError() {
+        // If the user dismisses the error banner, we want to return to the recognized state
+        // if we have a valid prompt, so they don't lose their text.
+        switch state {
+        case let .temporaryError(_, prompt), let .configurationRequired(_, prompt):
+            if let text = prompt {
+                state = .speechRecognized(text)
+            } else {
+                state = .waiting
+            }
+        default:
+            // Do nothing if not in an error state
+            break
         }
     }
 
@@ -169,8 +186,23 @@ final class SpeechRecognitionViewModel: ObservableObject {
             // sessionManager
             sessionManager.start(with: image)
             state = .waiting
+        } catch let error as ImageGenerationError {
+            switch error {
+            case .unauthorized, .accessRestricted:
+                state = .configurationRequired(
+                    String(localized: "main_configurationBanner_message"),
+                    prompt: prompt
+                )
+            case .rateLimitExceeded:
+                state = .temporaryError(
+                    Helpers.formatError(error),
+                    prompt: prompt
+                )
+            default:
+                state = .temporaryError(Helpers.formatError(error), prompt: prompt)
+            }
         } catch {
-            state = .error(Helpers.formatError(error))
+            state = .temporaryError(Helpers.formatError(error), prompt: prompt)
         }
     }
 
@@ -186,25 +218,28 @@ final class SpeechRecognitionViewModel: ObservableObject {
         ttsWarning = nil
     }
 
-    func clearError() {
-        if case .error = state { state = .waiting }
-    }
-
     func handleSettingsDismissed() {
-        guard serviceNeedsRecreation else { return }
-        serviceNeedsRecreation = false
-        // Safety: Stop everything before recreation
-        speechService?.cancelRecognition()
-        ttsService?.stop()
-        state = .preparingServices
-        do {
-            try servicesManager.recreateServices()
-            configureTTSCallbacks()
-            state = .waiting
-        } catch let error as AppError {
-            state = .fatalError(error)
-        } catch {
-            state = .fatalError(.serviceCreationFailed(error.localizedDescription))
+        // Capture relevant state before potential reset
+        let promptToRestore = state.recognizedText
+        let wasConfigurationRequired = state.configurationRequiredMessage != nil
+
+        if serviceNeedsRecreation {
+            prepare()
+            serviceNeedsRecreation = false
+        }
+
+        // If we were blocked by configuration, and coming back from settings,
+        // we restore the "Recognized" state (Draw button enabled) so the user can try again.
+        if wasConfigurationRequired, let prompt = promptToRestore {
+            // Only restore if we are in a safe state (e.g., waiting after prepare, or still in
+            // config error)
+            // We don't want to override a fatal error if prepare() failed.
+            switch state {
+            case .waiting, .configurationRequired:
+                state = .speechRecognized(prompt)
+            default:
+                break
+            }
         }
     }
 }

@@ -12,7 +12,17 @@ struct NotificationStackView: View {
 
     var body: some View {
         VStack(spacing: 12) { // Increased spacing for better legibility in overlays
-            // 1. Error Banner
+            // 1. Configuration/Auth Banner
+            if let configMessage = viewModel.state.configurationRequiredMessage {
+                SettingsErrorBannerView(
+                    message: configMessage,
+                    onSettingsTapped: { viewModel.showSettings = true },
+                    onDismiss: { viewModel.clearError() }
+                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
+            // 2. Error Banner
             if let errorMessage = viewModel.state.errorMessage {
                 ErrorBannerView(
                     message: errorMessage,
@@ -21,7 +31,7 @@ struct NotificationStackView: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
 
-            // 2. TTS Warning Banner
+            // 3. TTS Warning Banner
             if let warning = viewModel.ttsWarning {
                 let config = warning.bannerConfig
                 BaseBannerView(
@@ -34,7 +44,7 @@ struct NotificationStackView: View {
         }
         .animation(
             .spring(response: 0.4, dampingFraction: 0.8),
-            value: viewModel.state.errorMessage
+            value: viewModel.state
         )
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.ttsWarning != nil)
         // Add timer for the warning to auto-hide

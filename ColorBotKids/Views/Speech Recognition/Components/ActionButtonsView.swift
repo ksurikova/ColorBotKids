@@ -12,7 +12,15 @@ struct ActionButtonsView: View {
     let onDraw: () async -> Void
 
     private var enableDrawButton: Bool {
-        recognitionState.isSpeechRecognized
+        // We must have text to draw
+        guard recognitionState.recognizedText != nil else { return false }
+
+        // If configuration is broken (e.g. Auth error), block the action until fixed
+        if case .configurationRequired = recognitionState {
+            return false
+        }
+
+        return true
     }
 
     var body: some View {

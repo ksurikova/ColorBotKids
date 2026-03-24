@@ -10,6 +10,11 @@ struct PromptSectionView: View {
     let recognitionState: MainActionState
 
     private var currentPrompt: String {
+        // If we have a prompt (even from an error state), show it
+        if let text = recognitionState.recognizedText {
+            return text
+        }
+
         switch recognitionState {
         case .waiting:
             return String(localized: "main_prompt_tapToStart")
@@ -17,9 +22,9 @@ struct PromptSectionView: View {
             return String(localized: "main_prompt_listening")
         case .analysingSpeech:
             return String(localized: "main_prompt_analyzing")
-        case let .speechRecognized(text), let .generatingImage(from: text):
-            return text
-        case .error, .preparingServices, .fatalError:
+        case .preparingServices, .fatalError:
+            return ""
+        default:
             return ""
         }
     }

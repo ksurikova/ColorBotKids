@@ -66,6 +66,14 @@ extension Text {
     func confirmationButtonLabel() -> some View {
         font(.system(size: 19, weight: .bold, design: .rounded))
     }
+
+    func bannerMessageStyle() -> some View {
+        font(.system(size: 15, weight: .medium))
+            .foregroundStyle(.primary)
+            .lineLimit(3)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
 }
 
 #Preview("caption") {

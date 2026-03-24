@@ -362,7 +362,7 @@
       }
     },
     "common_action_settings" : {
-      "comment" : "PermissionActionButton",
+      "comment" : "PermissionActionButton, SettingsErrorBannerView",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -1586,6 +1586,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Durdur"
+          }
+        }
+      }
+    },
+    "main_configurationBanner_message" : {
+      "comment" : "SpeechRecognitionView",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI image generation isn't available. Check your API key in Settings."
           }
         }
       }
