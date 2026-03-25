@@ -36,18 +36,14 @@ struct PromptSectionView: View {
     }
 
     var body: some View {
-        VStack {
-            Spacer()
-            ZStack {
-                PulsingWaveView(isActive: recognitionState.isProcessing)
-                    .opacity(recognitionState.isProcessing ? 1 : 0)
-                    .animation(.easeInOut, value: recognitionState.isProcessing)
+        ZStack {
+            PulsingWaveView(isActive: recognitionState.isProcessing)
+                .opacity(recognitionState.isProcessing ? 1 : 0)
+                .animation(.easeInOut, value: recognitionState.isProcessing)
 
-                ModernPromptCard(text: currentPrompt)
-            }
-            .frame(height: 180)
-            Spacer()
+            ModernPromptCard(text: currentPrompt)
         }
+        .frame(height: 180)
     }
 }
 

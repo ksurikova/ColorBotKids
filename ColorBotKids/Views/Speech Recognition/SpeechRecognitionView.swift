@@ -44,23 +44,26 @@ struct SpeechRecognitionView: View {
 
                 Spacer()
 
+                // Main content centered vertically
                 VStack(spacing: 32) {
                     TitleSectionView()
                     PromptSectionView(
                         recognitionState: viewModel.state
                     )
 
-                    if viewModel.canSpeakText {
-                        HearButtonView(action: viewModel.speakCurrentText)
-                    }
-
-                    ActionButtonsView(
-                        recognitionState: viewModel.state,
-                        onRecord: { Task { await viewModel.toggleRecording() } },
-                        onDraw: { Task { await viewModel.generateImage() } }
-                    )
+                    HearButtonView(action: viewModel.speakCurrentText)
+                        .opacity(viewModel.canSpeakText ? 1 : 0)
                 }
+
                 Spacer()
+
+                // Pinned to the bottom
+                ActionButtonsView(
+                    recognitionState: viewModel.state,
+                    onRecord: { Task { await viewModel.toggleRecording() } },
+                    onDraw: { Task { await viewModel.generateImage() } }
+                )
+                .padding(.bottom)
             }
 
             // Overlays
