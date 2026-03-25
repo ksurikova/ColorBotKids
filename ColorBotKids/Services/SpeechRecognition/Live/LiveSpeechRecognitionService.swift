@@ -8,6 +8,10 @@ import AVFoundation
 import Foundation
 import Speech
 
+enum SpeechTimeoutError: Error {
+    case timeout
+}
+
 final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
     SFSpeechRecognizerDelegate {
     // MARK: - Private State
@@ -18,14 +22,9 @@ final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
     private var recognitionTask: SFSpeechRecognitionTask?
     private var settings: SpeechRecognitionSettings
 
-    // to prevent calling teardown multiple times concurrently
     private let teardownLock = NSLock()
     private var isTornDown = false
-
-    // Retained only while the audio tap is installed.
     private var installedInputNode: AVAudioInputNode?
-
-    // Guarded by main actor or a serial queue — see note below.
     private var recognitionContinuation: CheckedContinuation<String, Error>?
 
     private(set) var isRunning: Bool = false
@@ -61,8 +60,7 @@ final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
     // MARK: - Static Helpers
 
     static func getSupportedLocales() -> [Locale] {
-        SFSpeechRecognizer.supportedLocales()
-            .sorted { $0.identifier < $1.identifier }
+        SFSpeechRecognizer.supportedLocales().sorted { $0.identifier < $1.identifier }
     }
 
     static func canCreateWithCurrentSettings(_ settings: SpeechRecognitionSettings) -> Bool {
@@ -70,16 +68,22 @@ final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
         return settings.requiresOnDevice ? recognizer.supportsOnDeviceRecognition : true
     }
 
-    func getCurrentLocale() -> Locale {
-        settings.locale
+    func getCurrentLocale() -> Locale { settings.locale }
+
+    func getExecutionTimeout() -> TimeInterval {
+        settings.speechTimeout
     }
 
     // MARK: - Start
 
     func startRecognition() throws {
-        guard !isRunning else {
-            throw SpeechRecognitionError.alreadyRunning
-        }
+        guard !isRunning else { throw SpeechRecognitionError.alreadyRunning }
+
+        // Reset teardown state for subsequent uses
+        teardownLock.lock()
+        isTornDown = false
+        teardownLock.unlock()
+
         do {
             try checkAuthorization()
             try configureAudioSession(active: true)
@@ -96,18 +100,65 @@ final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
 
     // MARK: - Stop (cooperative — waits for final result)
 
-    func stopRecognition() async throws -> String {
-        guard isRunning else {
-            throw SpeechRecognitionError.notRunning
+    func stopRecognition(progressHandler: ((Double) -> Void)?) async throws -> String {
+        guard isRunning else { throw SpeechRecognitionError.notRunning }
+
+        // Signal the end of audio BEFORE waiting, so the recognizer finalizes
+        if audioEngine.isRunning {
+            audioEngine.stop()
         }
-        return try await withCheckedThrowingContinuation { continuation in
-            self.recognitionContinuation = continuation
-            // Signal end of audio — recognition task will deliver the final result
-            // via the completion handler, which resumes the continuation.
-            self.recognitionRequest?.endAudio()
-            self.audioEngine.stop()
-            self.installedInputNode?.removeTap(onBus: 0)
-            self.installedInputNode = nil
+        audioEngine.inputNode.removeTap(onBus: 0)
+        recognitionRequest?.endAudio()
+
+        return try await withThrowingTaskGroup(of: String.self) { group in
+            group.addTask {
+                   try await self.waitForFinalResult()
+            }
+
+            group.addTask {
+                let timeoutSeconds = Int(self.settings.speechTimeout)
+                for i in 0 ..< timeoutSeconds {
+                    progressHandler?(Double(timeoutSeconds - i))
+                    try await Task.sleep(nanoseconds: 1 * 1_000_000_000)
+                }
+                progressHandler?(0)
+                throw SpeechTimeoutError.timeout
+            }
+
+            do {
+                let result = try await group.next()
+                group.cancelAll()
+                return result ?? ""
+            } catch {
+                group.cancelAll()
+                if let timeoutErr = error as? SpeechTimeoutError, timeoutErr == .timeout {
+                    self.cancelRecognition()
+                    throw SpeechRecognitionError.recognitionFailed(
+                        NSError(
+                            domain: "SpeechService",
+                            code: -1,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: "Recognition timed out. Please try again.",
+                            ]
+                        )
+                    )
+                }
+                throw error
+            }
+        }
+    }
+
+    // Safer continuation capture
+    private func waitForFinalResult() async throws -> String {
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                self.teardownLock.lock()
+                // Safely assign continuation under lock so teardown can't miss it
+                self.recognitionContinuation = continuation
+                self.teardownLock.unlock()
+            }
+        } onCancel: {
+            self.cancelRecognition()
         }
     }
 
@@ -163,6 +214,9 @@ private extension LiveSpeechRecognitionService {
         let inputNode = audioEngine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
 
+        // It is best practice to explicitly remove any lingering tap before installing a new one
+        inputNode.removeTap(onBus: 0)
+
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             self?.recognitionRequest?.append(buffer)
         }
@@ -200,21 +254,23 @@ private extension LiveSpeechRecognitionService {
 // MARK: - Private Teardown
 
 private extension LiveSpeechRecognitionService {
-    // Single path for all cleanup. Resumes the pending continuation if one exists.
-    // Pass `nil` only when tearing down mid-start before a continuation was set.
     func teardown(resumingWith result: Result<String, Error>?) {
-        teardownLock.lock()
-        defer { teardownLock.unlock() }
+        let continuationToResume: CheckedContinuation<String, Error>?
 
-        guard !isTornDown else { return }
+        teardownLock.lock()
+
+        guard !isTornDown else {
+            teardownLock.unlock()
+            return
+        }
         isTornDown = true
-        // Stop audio first, before cancelling the task,
-        // so the recognizer can process any buffered audio
-        // in the cooperative (stop) path before task cancellation.
+
         if audioEngine.isRunning {
             audioEngine.stop()
         }
-        installedInputNode?.removeTap(onBus: 0)
+
+        // Remove tap directly from the audio engine node, not the optional
+        audioEngine.inputNode.removeTap(onBus: 0)
         installedInputNode = nil
 
         recognitionRequest?.endAudio()
@@ -225,13 +281,16 @@ private extension LiveSpeechRecognitionService {
 
         isRunning = false
 
-        // Deactivate audio session — best-effort, non-fatal
         try? configureAudioSession(active: false)
 
-        // Resume the continuation exactly once
-        if let result, let continuation = recognitionContinuation {
-            recognitionContinuation = nil
-            continuation.resume(with: result)
+        continuationToResume = recognitionContinuation
+        recognitionContinuation = nil
+
+        teardownLock.unlock()
+
+        // Fix #4: Resume the continuation OUTSIDE the lock
+        if let result {
+            continuationToResume?.resume(with: result)
         }
     }
 }

@@ -18,7 +18,7 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
             previewFor(state: .processingSpeech, name: "Recording")
 
             // Analyzing
-            previewFor(state: .analysingSpeech, name: "Analyzing")
+            previewFor(state: .analysingSpeech(1), name: "Analyzing")
 
             // Recognized
             previewFor(

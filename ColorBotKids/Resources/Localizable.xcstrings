@@ -1650,6 +1650,30 @@
         }
       }
     },
+    "main_prompt_analyzing_countDown" : {
+      "comment" : "SpeechRecognitionView",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyzing...%lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Анализирую...%lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analiz ediliyor...%lld"
+          }
+        }
+      }
+    },
     "main_prompt_listening" : {
       "comment" : "SpeechRecognitionView",
       "extractionState" : "manual",

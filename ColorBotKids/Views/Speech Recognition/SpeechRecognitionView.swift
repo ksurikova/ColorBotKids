@@ -46,7 +46,9 @@ struct SpeechRecognitionView: View {
 
                 VStack(spacing: 32) {
                     TitleSectionView()
-                    PromptSectionView(recognitionState: viewModel.state)
+                    PromptSectionView(
+                        recognitionState: viewModel.state
+                    )
 
                     if viewModel.canSpeakText {
                         HearButtonView(action: viewModel.speakCurrentText)

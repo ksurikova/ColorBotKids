@@ -4,15 +4,15 @@
 //
 //  Created by ksurikova on 4.02.2026.
 //
-import SwiftUI
 import Combine
+import SwiftUI
 
 final class MainServicesManager {
     // MARK: - Dependencies
 
     let configurationManager: ConfigurationManager
     private let servicesFactory: MainServiceFactory
-    
+
     private var cancellables = Set<AnyCancellable>()
 
     init(
@@ -21,10 +21,11 @@ final class MainServicesManager {
     ) {
         self.configurationManager = configurationManager
         self.servicesFactory = servicesFactory
-        
+
         configurationManager.configurationSaved
             .sink { [weak self] in
-                // Invalidate services so next time they are requested, they are recreated with new config
+                // Invalidate services so next time they are requested, they are recreated with new
+                // config
                 self?.services = nil
             }
             .store(in: &cancellables)

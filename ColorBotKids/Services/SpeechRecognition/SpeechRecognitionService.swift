@@ -13,7 +13,8 @@ protocol SpeechRecognitionService: CriticalServiceCapability {
     init(settings: SpeechRecognitionSettings) throws
     func startRecognition() throws
     func cancelRecognition()
-    func stopRecognition() async throws -> String
+    func stopRecognition(progressHandler: ((Double) -> Void)?) async throws -> String
+    func getExecutionTimeout() -> TimeInterval
     static func getSupportedLocales() -> [Locale]
     static func canCreateWithCurrentSettings(_ settings: SpeechRecognitionSettings) -> Bool
     // only to check

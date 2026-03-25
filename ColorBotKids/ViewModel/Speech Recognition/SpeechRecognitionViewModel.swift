@@ -114,9 +114,20 @@ final class SpeechRecognitionViewModel: ObservableObject {
         }
 
         if state == .processingSpeech {
-            state = .analysingSpeech
+            // Ask the service how long it will wait
+            let timeout = Int(speechService.getExecutionTimeout())
+
+            // Update UI with the correct initial value
+            state = .analysingSpeech(timeout)
+
             do {
-                let text = try await speechService.stopRecognition()
+                let text = try await speechService
+                    .stopRecognition(progressHandler: { [weak self] timeLeft in
+                        Task { @MainActor in
+                            self?.state = .analysingSpeech(Int(timeLeft))
+                        }
+                    })
+
                 guard !text.isEmpty else {
                     // Start fresh, no prompt to preserve
                     state = .temporaryError(

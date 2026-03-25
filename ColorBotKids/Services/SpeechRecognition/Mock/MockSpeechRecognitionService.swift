@@ -22,9 +22,10 @@ final class MockSpeechRecognitionService: SpeechRecognitionService {
     var isRunning: Bool = false
 
     private var canCreateWithSettings = false
+    private let settings: SpeechRecognitionSettings
 
     init(settings: SpeechRecognitionSettings) throws {
-        // fake init
+        self.settings = settings
     }
 
     // MARK: - Static configuration for tests or previews
@@ -57,9 +58,13 @@ final class MockSpeechRecognitionService: SpeechRecognitionService {
         // do nothing
     }
 
-    func stopRecognition() async throws -> String {
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
+    func stopRecognition(progressHandler: ((Double) -> Void)?) async throws -> String {
+        try? await Task.sleep(nanoseconds: UInt64(settings.speechTimeout * 1_000_000_000))
         return "tree"
+    }
+
+    func getExecutionTimeout() -> TimeInterval {
+        settings.speechTimeout
     }
 
     func cancelRecognition() {

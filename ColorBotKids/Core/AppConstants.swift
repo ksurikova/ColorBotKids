@@ -11,4 +11,5 @@ enum AppConstants {
     static let mockAPIKey = "mock-key"
     static let stateURLKey = "com.colorBotKids.currentStateURL"
     static let isSettingsPresentedKey = "isSettingsPresented"
+    static let defaultSpeechTimeout = 5
 }

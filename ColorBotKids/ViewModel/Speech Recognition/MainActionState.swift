@@ -9,7 +9,7 @@ enum MainActionState: Equatable {
     case preparingServices // App is building the engines
     case waiting // Ready for user input
     case processingSpeech // Recording audio
-    case analysingSpeech // Waiting for transcription
+    case analysingSpeech(Int?) // Waiting for transcription
 
     // Success flow
     case speechRecognized(String) // Text ready to display

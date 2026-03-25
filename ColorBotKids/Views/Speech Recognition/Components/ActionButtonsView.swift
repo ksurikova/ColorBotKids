@@ -68,7 +68,7 @@ struct ActionButtonsView: View {
 
 #Preview("speech analyze") {
     ActionButtonsView(
-        recognitionState: MainActionState.analysingSpeech,
+        recognitionState: MainActionState.analysingSpeech(1),
         onRecord: {},
         onDraw: {}
     )

@@ -20,7 +20,13 @@ struct PromptSectionView: View {
             return String(localized: "main_prompt_tapToStart")
         case .processingSpeech:
             return String(localized: "main_prompt_listening")
-        case .analysingSpeech:
+        case let .analysingSpeech(seconds):
+            if let seconds {
+                return String(
+                    localized: "main_prompt_analyzing_countDown",
+                    defaultValue: "Analyzing in \(seconds)..."
+                )
+            }
             return String(localized: "main_prompt_analyzing")
         case .preparingServices, .fatalError:
             return ""
