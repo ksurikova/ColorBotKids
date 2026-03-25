@@ -58,12 +58,36 @@ struct SpeechRecognitionView: View {
                 Spacer()
 
                 // Pinned to the bottom
-                ActionButtonsView(
-                    recognitionState: viewModel.state,
-                    onRecord: { Task { await viewModel.toggleRecording() } },
-                    onDraw: { Task { await viewModel.generateImage() } }
-                )
-                .padding(.bottom)
+                ZStack(alignment: .bottomLeading) {
+                    ActionButtonsView(
+                        recognitionState: viewModel.state,
+                        onRecord: { Task { await viewModel.toggleRecording() } },
+                        onDraw: { Task { await viewModel.generateImage() } }
+                    )
+                    .padding(.bottom)
+
+                    // Hint bubble aligned over the left button (Record/Stop)
+                    if viewModel.showRecordingHint {
+                        VStack(spacing: 4) {
+                            Text("Tap when done!")
+                                .font(.system(.subheadline, design: .rounded).bold())
+                                .foregroundStyle(.white)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(Color.black.opacity(0.8))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            Image(systemName: "triangle.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.black.opacity(0.8))
+                                .rotationEffect(.degrees(180))
+                        }
+                        .padding(.leading, 40) // Approximate alignment with left button center
+                        .padding(.bottom, 125) // Position above the button
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                        .allowsHitTesting(false)
+                    }
+                }
             }
 
             // Overlays

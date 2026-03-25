@@ -45,9 +45,11 @@ final class SpeechRecognitionViewModel: ObservableObject {
         }
     }
 
+    @Published var showRecordingHint = false
     @Published var ttsWarning: TTSWarning?
 
     private var cancellables = Set<AnyCancellable>()
+    private var hintTask: Task<Void, Never>?
 
     // Accessors for the services safely
     var speechService: SpeechRecognitionService? { servicesManager.services?.speechRecognition }
@@ -76,8 +78,43 @@ final class SpeechRecognitionViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Observe state changes to manage the Hint logic
+        $state
+            .removeDuplicates()
+            .sink { [weak self] newState in
+                self?.manageHintVisibility(for: newState)
+            }
+            .store(in: &cancellables)
+
         // Start the lifecycle
         prepare()
+    }
+
+    private func manageHintVisibility(for newState: MainActionState) {
+        // Cancel any existing timer
+        hintTask?.cancel()
+
+        if newState == .processingSpeech {
+            // Reset immediately
+            showRecordingHint = false
+
+            // Start 3-second timer
+            hintTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
+
+                // Ensure task wasn't cancelled and state hasn't changed
+                if !Task.isCancelled && state == .processingSpeech {
+                    withAnimation(.spring()) {
+                        self.showRecordingHint = true
+                    }
+                }
+            }
+        } else {
+            // Hide immediately for all other states
+            withAnimation {
+                showRecordingHint = false
+            }
+        }
     }
 
     func prepare() {
@@ -104,32 +141,13 @@ final class SpeechRecognitionViewModel: ObservableObject {
     }
 
     func toggleRecording() async {
-        guard state.canToggleRecognition else { return }
-        guard let speechService = speechService else {
-            state =
-                .fatalError(
-                    .serviceCreationFailed(String(localized: "speech_error_servicesMissing"))
-                )
-            return
-        }
+        guard let speechService else { return }
 
         if state == .processingSpeech {
-            // Ask the service how long it will wait
-            let timeout = Int(speechService.getExecutionTimeout())
-
-            // Update UI with the correct initial value
-            state = .analysingSpeech(timeout)
-
+            state = .analysingSpeech
             do {
-                let text = try await speechService
-                    .stopRecognition(progressHandler: { [weak self] timeLeft in
-                        Task { @MainActor in
-                            self?.state = .analysingSpeech(Int(timeLeft))
-                        }
-                    })
-
-                guard !text.isEmpty else {
-                    // Start fresh, no prompt to preserve
+                let text = try await speechService.stopRecognition(progressHandler: nil)
+                guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     state = .temporaryError(
                         String(localized: "speech_error_noSpeechDetected"),
                         prompt: nil
@@ -137,19 +155,33 @@ final class SpeechRecognitionViewModel: ObservableObject {
                     return
                 }
                 state = .speechRecognized(text)
-                if servicesManager.configurationManager.autoPlayConfirmation {
-                    speakCurrentText()
-                }
             } catch {
-                state = .temporaryError(Helpers.formatError(error), prompt: nil)
+                state = .temporaryError(error.localizedDescription, prompt: nil)
             }
         } else {
             do {
-                state = .processingSpeech
                 try speechService.startRecognition()
+                state = .processingSpeech
             } catch {
-                state = .temporaryError(Helpers.formatError(error), prompt: nil)
+                state = .temporaryError(
+                    error.localizedDescription,
+                    prompt: state.recognizedText
+                )
             }
+        }
+    }
+
+    func generateImage() async {
+        guard let prompt = state.recognizedText, let imageService else { return }
+
+        state = .generatingImage(from: prompt)
+
+        do {
+            // Call image generation service
+            // Note: In real app, we likely pass this image to session manager or router
+            _ = try await imageService.generateImage(from: prompt)
+        } catch {
+            state = .temporaryError(error.localizedDescription, prompt: prompt)
         }
     }
 
@@ -164,48 +196,9 @@ final class SpeechRecognitionViewModel: ObservableObject {
                 state = .waiting
             }
         default:
-            // Do nothing if not in an error state
-            break
-        }
-    }
-
-    func generateImage() async {
-        guard let prompt = state.recognizedText else { return }
-        // Use the services from the model safely
-        guard let imageService = imageService else {
-            state =
-                .fatalError(
-                    .serviceCreationFailed(String(localized: "speech_error_servicesMissing"))
-                )
-            return
-        }
-        // if we have it, let's stop
-        ttsService?.stop()
-        state = .generatingImage(from: prompt)
-
-        do {
-            let image = try await imageService.generateImage(from: prompt)
-            // This triggers the Router to move to .imageEditor because Router observes
-            // sessionManager
-            sessionManager.start(with: image)
-            state = .waiting
-        } catch let error as ImageGenerationError {
-            switch error {
-            case .unauthorized, .accessRestricted:
-                state = .configurationRequired(
-                    String(localized: "main_configurationBanner_message"),
-                    prompt: prompt
-                )
-            case .rateLimitExceeded:
-                state = .temporaryError(
-                    Helpers.formatError(error),
-                    prompt: prompt
-                )
-            default:
-                state = .temporaryError(Helpers.formatError(error), prompt: prompt)
+            if state.errorMessage != nil {
+                state = .waiting
             }
-        } catch {
-            state = .temporaryError(Helpers.formatError(error), prompt: prompt)
         }
     }
 

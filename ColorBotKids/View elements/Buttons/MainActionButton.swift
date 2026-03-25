@@ -18,17 +18,25 @@ struct MainActionButton: View {
         Button(action: action) {
             VStack(spacing: 12) {
                 ZStack {
-                    // Pulsing background when active
                     if isActive {
-                        Circle()
-                            .fill(color.opacity(0.2))
-                            .frame(width: 90, height: 90)
-                            .scaleEffect(1.2)
-                            .animation(
-                                .easeInOut(duration: 1.0)
-                                    .repeatForever(autoreverses: true),
-                                value: isActive
-                            )
+                        ZStack {
+                            // Outer ripple
+                            Circle()
+                                .fill(color.opacity(0.15))
+                                .frame(width: 90, height: 90)
+                                .scaleEffect(isActive ? 1.4 : 1.0)
+                                .opacity(isActive ? 0 : 1)
+
+                            // Inner pulse
+                            Circle()
+                                .fill(color.opacity(0.2))
+                                .frame(width: 90, height: 90)
+                                .scaleEffect(1.2)
+                        }
+                        .animation(
+                            .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                            value: isActive
+                        )
                     }
                     // Main icon circle
                     Circle()

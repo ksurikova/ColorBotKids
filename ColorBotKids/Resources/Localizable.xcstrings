@@ -1501,19 +1501,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Draw It!"
+            "value" : "Let’s paint!"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Нарисовать!"
+            "value" : "Давай рисовать!🎨"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Çiz!"
+            "value" : "Resim zamanı!🎨"
           }
         }
       }
@@ -1549,19 +1549,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record"
+            "value" : "Talk to me!"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Записать"
+            "value" : "Поговори со мной!"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kaydet"
+            "value" : "Haydi anlat!"
           }
         }
       }
@@ -1573,19 +1573,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stop"
+            "value" : "Ready!"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Стоп"
+            "value" : "Готово!"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Durdur"
+            "value" : "Hazır!"
           }
         }
       }
@@ -1609,19 +1609,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Creating your image..."
+            "value" : "Time for magic! Drawing... ✨"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Создаю изображение..."
+            "value" : "Начинаю колдовать над рисунком! ✨"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Görseliniz oluşturuluyor..."
+            "value" : "Şimdi sihir zamanı! Resmini yapıyorum... ✨"
           }
         }
       }
@@ -1633,43 +1633,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Analyzing..."
+            "value" : "Writing your words down... ✍️"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Анализирую..."
+            "value" : "Записываю твои слова... ✍️"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analiz ediliyor..."
-          }
-        }
-      }
-    },
-    "main_prompt_analyzing_countDown" : {
-      "comment" : "SpeechRecognitionView",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analyzing...%lld"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анализирую...%lld"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analiz ediliyor...%lld"
+            "state" : "needs_review",
+            "value" : "Söylediklerini yazıyorum... ✍️"
           }
         }
       }
@@ -1681,19 +1657,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Listening..."
+            "value" : "I am hearing you…👂"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Слушаю..."
+            "value" : "Слушаю-слушаю…👂"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dinleniyor..."
+            "value" : "Seni duyuyorum…👂"
           }
         }
       }
@@ -1705,19 +1681,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap the microphone\nand tell me what to draw"
+            "value" : "Press the microphone and tell me what to draw! 🎤"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нажмите на микрофон\nи скажите, что мне нарисовать"
+            "state" : "needs_review",
+            "value" : "Нажми на микрофон и расскажи, что нарисовать! 🎤"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mikrofona dokunun\nve ne çizeceğimi söyleyin"
+            "state" : "needs_review",
+            "value" : "Mikrofona bas ve bana ne çizmemi istediğini söyle! 🎤"
           }
         }
       }
@@ -2761,10 +2737,6 @@
       "comment" : "Error message displayed when the speech recognition service does not detect any speech.",
       "isCommentAutoGenerated" : true
     },
-    "speech_error_servicesMissing" : {
-      "comment" : "Error that occurs when the SpeechRecognitionService is missing.",
-      "isCommentAutoGenerated" : true
-    },
     "speech_error_unavailabilityMessage" : {
       "comment" : "Message to show when the speech recognition feature is unavailable.",
       "isCommentAutoGenerated" : true
@@ -3070,6 +3042,10 @@
           }
         }
       }
+    },
+    "Tap when done!" : {
+      "comment" : "A hint text displayed when the user is recording a voice input.",
+      "isCommentAutoGenerated" : true
     },
     "text_to_speech_error_audioSessionFailed" : {
       "extractionState" : "manual",

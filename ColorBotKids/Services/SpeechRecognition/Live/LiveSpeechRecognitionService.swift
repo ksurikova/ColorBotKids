@@ -112,7 +112,7 @@ final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
 
         return try await withThrowingTaskGroup(of: String.self) { group in
             group.addTask {
-                   try await self.waitForFinalResult()
+                try await self.waitForFinalResult()
             }
 
             group.addTask {

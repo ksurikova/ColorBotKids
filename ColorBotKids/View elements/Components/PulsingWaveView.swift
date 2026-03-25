@@ -17,7 +17,7 @@ struct PulsingWaveView: View {
         Circle()
             .fill(
                 RadialGradient(
-                    colors: [.blue.opacity(0.8), .blue.opacity(0.1)],
+                    colors: [.blue.opacity(0.8), .purple.opacity(0.1)],
                     center: .center,
                     startRadius: 20,
                     endRadius: 60

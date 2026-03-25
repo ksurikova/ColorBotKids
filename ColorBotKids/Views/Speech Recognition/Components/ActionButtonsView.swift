@@ -29,7 +29,7 @@ struct ActionButtonsView: View {
                 icon: recognitionState == .processingSpeech ? "mic.fill" : "mic.circle.fill",
                 label: recognitionState == .processingSpeech ? "main_action_stop" :
                     "main_action_record",
-                color: recognitionState == .processingSpeech ? .red : .blue,
+                color: recognitionState == .processingSpeech ? .green : .blue,
                 isActive: recognitionState == .processingSpeech,
                 isEnabled: recognitionState.canToggleRecognition
             ) {
@@ -39,7 +39,7 @@ struct ActionButtonsView: View {
             MainActionButton(
                 icon: "paintbrush.pointed.fill",
                 label: "main_action_draw",
-                color: .green,
+                color: .purple,
                 isEnabled: enableDrawButton
             ) {
                 Task { await onDraw() }
@@ -68,7 +68,7 @@ struct ActionButtonsView: View {
 
 #Preview("speech analyze") {
     ActionButtonsView(
-        recognitionState: MainActionState.analysingSpeech(1),
+        recognitionState: MainActionState.analysingSpeech,
         onRecord: {},
         onDraw: {}
     )
