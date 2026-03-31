@@ -74,6 +74,11 @@ extension Text {
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
+
+    func hintStyle() -> some View {
+        font(.system(.subheadline, design: .rounded).bold())
+            .foregroundStyle(.white)
+    }
 }
 
 #Preview("caption") {
@@ -102,4 +107,11 @@ extension Text {
 
 #Preview("permissionDescription") {
     Text("Draw it!").permissionDescription()
+}
+
+#Preview("hint") {
+    Text("Tap when done!")
+        .hintStyle()
+        .padding()
+        .background(Color.black.opacity(0.8))
 }
