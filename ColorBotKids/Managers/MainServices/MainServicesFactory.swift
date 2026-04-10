@@ -17,7 +17,7 @@ struct MainServiceFactory {
 
     func createServices(
         configuration: AppConfiguration,
-        resolver: SpeechCapabilityResolver
+        resolver: SpeechCapabilityResolving
     ) throws -> AppMainServices {
         guard let aiConfig = configuration.aiConfig else {
             throw ConfigurationError.aiConfigurationMissing

@@ -7,19 +7,20 @@
 
 import Foundation
 
-struct SpeechCapabilities: Equatable {
-    let locale: Locale
-    let speechAvailable: Bool
-    let onDeviceAvailable: Bool
-    let ttsAvailable: Bool
+protocol SpeechCapabilityResolving {
+    var speechService: SpeechRecognitionService.Type { get }
+    var ttsService: TextToSpeechService.Type { get }
 
-    // Whether the minimum required capabilities for speech recognition are met.
-    var isCriticalValid: Bool {
-        speechAvailable
-    }
+    func resolve(for locale: Locale) -> SpeechCapabilities
+    func resolve(from config: SpeechConfiguration) -> SpeechCapabilities
+    func getCapableLocales() -> [Locale]
+    func resolveLocale(locale: Locale?) -> Locale
+    func resolveSettings(from config: SpeechConfiguration) -> (
+        speech: SpeechRecognitionSettings, tts: TextToSpeechSettings?
+    )
 }
 
-struct SpeechCapabilityResolver {
+struct SpeechCapabilityResolver: SpeechCapabilityResolving {
     let speechService: SpeechRecognitionService.Type
     let ttsService: TextToSpeechService.Type
 

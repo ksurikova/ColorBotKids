@@ -11,7 +11,7 @@ final class ConfigurationManager {
     private(set) var configuration: AppConfiguration
 
     private let storage: ConfigurationStorage
-    let resolver: SpeechCapabilityResolver
+    let resolver: SpeechCapabilityResolving
 
     let configurationSaved = PassthroughSubject<Void, Never>()
 
@@ -36,7 +36,7 @@ final class ConfigurationManager {
         configuration.speechConfig?.autoPlayConfirmation ?? false
     }
 
-    init(storage: ConfigurationStorage, resolver: SpeechCapabilityResolver) {
+    init(storage: ConfigurationStorage, resolver: SpeechCapabilityResolving) {
         self.storage = storage
         self.resolver = resolver
         configuration = AppConfiguration()
