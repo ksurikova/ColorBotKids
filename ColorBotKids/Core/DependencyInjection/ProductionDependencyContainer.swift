@@ -15,6 +15,7 @@ final class ProductionDependencyContainer: AppDependencyContainer {
 
     // Define types here to ensure consistency between initialization and availability checks
     private typealias SpeechService = LiveSpeechRecognitionService
+    private typealias TextToSpeechService = AVTextToSpeechService
 
     let mainServicesManager: MainServicesManager
     let permissionManager: PermissionManager
@@ -22,6 +23,7 @@ final class ProductionDependencyContainer: AppDependencyContainer {
     let imageToolingManager: ImageToolingManager
     let contentViewModel: ContentViewModel
     let router: AppRouter
+    let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
 
@@ -29,7 +31,11 @@ final class ProductionDependencyContainer: AppDependencyContainer {
         imageToolingManager = Self.makeToolingManager()
         permissionManager = Self.makePermissionManager()
         sessionManager = Self.makeSessionManager()
-        mainServicesManager = Self.makeMainServicesManager()
+        speechCapabilityResolver = SpeechCapabilityResolver(
+            speechService: SpeechService.self,
+            ttsService: TextToSpeechService.self
+        )
+        mainServicesManager = Self.makeMainServicesManager(resolver: speechCapabilityResolver)
         speechConfigurationDraftService = LocalSpeechDraftService()
         aiConfigurationDraftService = LocalAIDraftService()
 
@@ -80,9 +86,8 @@ final class ProductionDependencyContainer: AppDependencyContainer {
         )
     }
 
-    private static func makeMainServicesManager() -> MainServicesManager {
-        let speechServiceType = SpeechService.self
-        let ttsServiceType = AVTextToSpeechService.self
+    private static func makeMainServicesManager(resolver: SpeechCapabilityResolving)
+        -> MainServicesManager {
         let imageFactory = LiveImageGenerationServiceFactory()
 
         let configStorage = CommonConfigurationStorage()
@@ -93,9 +98,7 @@ final class ProductionDependencyContainer: AppDependencyContainer {
 
         let configManager = ConfigurationManager(
             storage: configStorage,
-            resolver: SpeechCapabilityResolver(
-                speechService: speechServiceType, ttsService: ttsServiceType
-            )
+            resolver: resolver
         )
 
         return MainServicesManager(

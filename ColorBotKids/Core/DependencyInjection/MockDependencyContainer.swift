@@ -17,6 +17,7 @@ final class MockDependencyContainer: AppDependencyContainer {
     let imageToolingManager: ImageToolingManager
     let contentViewModel: ContentViewModel
     let router: AppRouter
+    let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
 
@@ -27,7 +28,14 @@ final class MockDependencyContainer: AppDependencyContainer {
         imageToolingManager = Self.makeToolingManager()
         permissionManager = Self.makePermissionManager(with: permissionStatuses)
         sessionManager = Self.makeSessionManager()
-        mainServicesManager = Self.makeMainServicesManager(with: configuration)
+        speechCapabilityResolver = SpeechCapabilityResolver(
+            speechService: MockSpeechRecognitionService.self,
+            ttsService: MockTextToSpeechService.self
+        )
+        mainServicesManager = Self.makeMainServicesManager(
+            with: configuration,
+            resolver: speechCapabilityResolver
+        )
         speechConfigurationDraftService = MockSpeechConfigurationDraftService()
         aiConfigurationDraftService = MockAIConfigurationDraftService()
 
@@ -91,10 +99,11 @@ final class MockDependencyContainer: AppDependencyContainer {
         )
     }
 
-    private static func makeMainServicesManager(with configuration: AppConfiguration?)
+    private static func makeMainServicesManager(
+        with configuration: AppConfiguration?,
+        resolver: SpeechCapabilityResolving
+    )
         -> MainServicesManager {
-        let speechServiceType = MockSpeechRecognitionService.self
-        let ttsServiceType = MockTextToSpeechService.self
         let imageFactory = ForcedMockImageGenerationServiceFactory()
 
         // Default to a valid working configuration if none provided (common for previews)
@@ -118,9 +127,7 @@ final class MockDependencyContainer: AppDependencyContainer {
 
         let configManager = ConfigurationManager(
             storage: configStorage,
-            resolver: SpeechCapabilityResolver(
-                speechService: speechServiceType, ttsService: ttsServiceType
-            )
+            resolver: resolver
         )
 
         return MainServicesManager(

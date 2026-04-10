@@ -15,6 +15,7 @@ protocol AppDependencyContainer {
     var imageToolingManager: ImageToolingManager { get }
     var contentViewModel: ContentViewModel { get }
     var router: AppRouter { get }
+    var speechCapabilityResolver: SpeechCapabilityResolving { get }
     var speechConfigurationDraftService: SpeechConfigurationDraftService { get }
     var aiConfigurationDraftService: AIConfigurationDraftService { get }
 
