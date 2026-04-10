@@ -104,7 +104,7 @@ final class AIConfigurationViewModel: ObservableObject {
             try configManager.saveAIConfiguration(config)
             clearDrafts()
         } catch {
-            self.error = (error as? AppError) ?? .configurationFailed(error.localizedDescription)
+            self.error = error.asAppError
         }
         isSaving = false
     }

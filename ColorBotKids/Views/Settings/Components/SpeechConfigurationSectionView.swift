@@ -22,7 +22,7 @@ struct SpeechConfigurationSectionView: View {
             if let warning = viewModel.state.content.warningMessage {
                 CriticalErrorPieceView(
                     title: "settings_errorTitle_speech",
-                    text: warning
+                    text: LocalizedStringKey(warning)
                 )
             }
 

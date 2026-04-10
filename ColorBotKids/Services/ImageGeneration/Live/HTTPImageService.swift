@@ -56,7 +56,7 @@ final class HTTPImageService: ImageGenerationService {
         } catch let error as ImageGenerationError {
             throw error
         } catch {
-            throw ImageGenerationError.networkError(error)
+            throw ImageGenerationError.networkError
         }
     }
 
@@ -71,13 +71,14 @@ final class HTTPImageService: ImageGenerationService {
         case 429:
             throw ImageGenerationError.rateLimitExceeded
         default:
-            let message = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-            let errorMsg = message?["error"] as? [String: Any]? ?? nil
-            let msgText = errorMsg?["message"] as? String
-            throw ImageGenerationError.serverError(
-                statusCode: response.statusCode,
-                message: msgText
-            )
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                print("ImageGeneration Server Error [\(response.statusCode)]: \(json)")
+            } else if let text = String(data: data, encoding: .utf8) {
+                print("ImageGeneration Server Error [\(response.statusCode)]: \(text)")
+            } else {
+                print("ImageGeneration Server Error [\(response.statusCode)]")
+            }
+            throw ImageGenerationError.serverError(statusCode: response.statusCode)
         }
     }
 }

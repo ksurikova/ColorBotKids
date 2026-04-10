@@ -74,7 +74,9 @@ final class SessionManager {
     }
 
     func delete() throws {
-        guard let session = currentSession else { return }
+        guard let session = currentSession else {
+            throw SessionError.noActiveSession
+        }
 
         if let url = session.persistenceURL {
             restorationService.clearState(at: url)
@@ -95,14 +97,15 @@ final class SessionManager {
             return
         }
 
-        if let (image, drawingData) = restorationService.loadState(from: url) {
+        do {
+            let (image, drawingData) = try restorationService.loadState(from: url)
             currentSession = DrawingSession(
                 image: image,
                 drawingData: drawingData,
                 persistenceURL: url
             )
-        } else {
-            print("Restoration failed, cleaning up")
+        } catch {
+            print("Restoration failed, cleaning up. Error: \(error.localizedDescription)")
             restorationService.clearState(at: url)
             stateStorage.setCurrentStateURL(nil)
         }

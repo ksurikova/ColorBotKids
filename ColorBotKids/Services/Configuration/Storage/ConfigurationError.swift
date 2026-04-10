@@ -8,72 +8,33 @@
 import Foundation
 
 enum ConfigurationError: LocalizedError {
-    case fileNotFound
     case corruptedData
     case failedToSave
     case failedToDelete
-    case invalidConfiguration
-    // specific validation errors
     case aiConfigurationMissing
     case aiConfigurationInvalid
     case speechConfigurationMissing
     case speechConfigurationInvalid
-    case unknown(Error)
+    case configurationInvalid
 
     var errorDescription: String? {
         switch self {
-        case .fileNotFound:
-            return "Configuration file not found"
         case .corruptedData:
-            return "Configuration data corrupted"
+            return String(localized: "configuration_error_corruptedData")
         case .failedToSave:
-            return "Failed to save configuration"
+            return String(localized: "configuration_error_failedToSave")
         case .failedToDelete:
-            return "Failed to delete configuration"
-        case .invalidConfiguration:
-            return "Invalid configuration"
+            return String(localized: "configuration_error_failedToDelete")
         case .aiConfigurationMissing:
-            return "AI configuration missing"
+            return String(localized: "configuration_error_aiConfigurationMissing")
         case .aiConfigurationInvalid:
-            return "AI configuration invalid"
+            return String(localized: "configuration_error_aiConfigurationInvalid")
         case .speechConfigurationMissing:
-            return "Speech configuration missing"
+            return String(localized: "configuration_error_speechConfigurationMissing")
         case .speechConfigurationInvalid:
-            return "Speech configuration invalid"
-        case let .unknown(error):
-            return error.localizedDescription
-        }
-    }
-
-    var asAppError: AppError {
-        switch self {
-        case .aiConfigurationMissing:
-            return .aiConfigurationInvalid("AI configuration is missing")
-        case .speechConfigurationMissing:
-            return .speechConfigurationInvalid("Speech configuration is missing")
-        case .speechConfigurationInvalid:
-            return .speechConfigurationInvalid("Speech configuration is invalid for this device")
-        default:
-            return .configurationFailed(localizedDescription)
-        }
-    }
-
-    var requiresAIConfiguration: Bool {
-        switch self {
-        case .fileNotFound, .corruptedData, .invalidConfiguration,
-             .aiConfigurationMissing, .aiConfigurationInvalid:
-            return true
-        default:
-            return false
-        }
-    }
-
-    var requiresSpeechConfiguration: Bool {
-        switch self {
-        case .speechConfigurationMissing, .speechConfigurationInvalid:
-            return true
-        default:
-            return false
+            return String(localized: "configuration_error_speechConfigurationInvalid")
+        case .configurationInvalid:
+            return String(localized: "configuration_error_invalidConfiguration")
         }
     }
 }

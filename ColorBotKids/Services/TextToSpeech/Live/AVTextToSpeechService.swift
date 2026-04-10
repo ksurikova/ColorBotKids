@@ -60,7 +60,7 @@ final class AVTextToSpeechService: NSObject, TextToSpeechService, AVSpeechSynthe
 
         // OutputVolume reflects reality only after session is active, so check volume here
         if let warningLevel = checkVolumeLevel() {
-            print("sound is low")
+            // print("sound is low")
             onVolumeWarning?(warningLevel)
         }
 

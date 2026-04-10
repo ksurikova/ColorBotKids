@@ -7,30 +7,27 @@
 import Foundation
 
 enum StateRestorationError: LocalizedError {
-    case fileError(String)
-    case encodingError(String)
-    case decodingError(String)
+    case directoryCreationFailed
+    case imageWriteFailed
+    case drawingWriteFailed
+    case imageEncodingFailed
+    case fileNotFound
+    case decodingFailed
 
     var errorDescription: String? {
         switch self {
-        case let .fileError(details):
-            let format = NSLocalizedString(
-                "state_restoration_error_fileError",
-                comment: "StateRestorationError"
-            )
-            return String(format: format, details)
-        case let .encodingError(details):
-            let format = NSLocalizedString(
-                "state_restoration_error_encodingError",
-                comment: "StateRestorationError"
-            )
-            return String(format: format, details)
-        case let .decodingError(details):
-            let format = NSLocalizedString(
-                "state_restoration_error_decodingError",
-                comment: "StateRestorationError"
-            )
-            return String(format: format, details)
+        case .directoryCreationFailed:
+            return String(localized: "state_restoration_error_directoryCreationFailed")
+        case .imageWriteFailed:
+            return String(localized: "state_restoration_error_imageWriteFailed")
+        case .drawingWriteFailed:
+            return String(localized: "state_restoration_error_drawingWriteFailed")
+        case .imageEncodingFailed:
+            return String(localized: "state_restoration_error_imageEncodingFailed")
+        case .fileNotFound:
+            return String(localized: "state_restoration_error_fileNotFound")
+        case .decodingFailed:
+            return String(localized: "state_restoration_error_decodingFailed")
         }
     }
 }

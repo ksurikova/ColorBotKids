@@ -17,7 +17,7 @@ struct UnsupportedView: View {
                 .font(.title)
 
             if let reason = reason {
-                Text(reason)
+                Text(LocalizedStringKey(reason))
                     .multilineTextAlignment(.center)
                     .padding()
             } else {

@@ -162,8 +162,7 @@ final class ImageEditorViewModel: ObservableObject {
             imageState = .idle
             showSuccessBanner = true
         } catch {
-            let saveError = (error as? ImageSaveServiceError) ?? .unknownError(error)
-            imageState = .failed(saveError)
+            imageState = .failed(error.asKidFriendlyError)
         }
     }
 

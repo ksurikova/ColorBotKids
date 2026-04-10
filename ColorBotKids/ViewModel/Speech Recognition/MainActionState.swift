@@ -16,11 +16,11 @@ enum MainActionState: Equatable {
     case generatingImage(from: String) // Hitting the AI API
 
     // Error flow - carrying the prompt ensures the UI doesn't flicker to empty
-    case temporaryError(String, prompt: String?)
+    case temporaryError(KidFriendlyError, prompt: String?)
 
     // Specific state for Auth issues that blocks the main button but enables Settings
-    case configurationRequired(String, prompt: String?)
-    case fatalError(AppError)
+    case configurationRequired(KidFriendlyError, prompt: String?)
+    case fatalError(KidFriendlyError)
 
     var isProcessing: Bool {
         switch self {
@@ -50,8 +50,8 @@ enum MainActionState: Equatable {
 
     var errorMessage: String? {
         switch self {
-        case let .temporaryError(message, _):
-            return message
+        case let .temporaryError(error, _):
+            return error.localizedDescription
         default:
             return nil
         }
@@ -59,8 +59,8 @@ enum MainActionState: Equatable {
 
     var configurationRequiredMessage: String? {
         switch self {
-        case let .configurationRequired(message, _):
-            return message
+        case let .configurationRequired(error, _):
+            return error.localizedDescription
         default:
             return nil
         }
@@ -83,7 +83,7 @@ enum MainActionState: Equatable {
         return text
     }
 
-    var fatalAppError: AppError? {
+    var fatalAppError: KidFriendlyError? {
         if case let .fatalError(error) = self { return error }
         return nil
     }

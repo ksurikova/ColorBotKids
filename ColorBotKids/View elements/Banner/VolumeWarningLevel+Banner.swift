@@ -13,17 +13,17 @@ extension VolumeWarningLevel {
         case .muted:
             return (
                 "speaker.slash.fill",
-                NSLocalizedString("common_message_volumeMuted", comment: "VolumeWarningLevel")
+                String(localized: "kid_message_volumeMuted")
             )
         case .veryLow:
             return (
                 "speaker.wave.1.fill",
-                NSLocalizedString("common_message_volumeVeryLow", comment: "VolumeWarningLevel")
+                String(localized: "kid_message_volumeVeryLow")
             )
         case .low:
             return (
                 "speaker.wave.2.fill",
-                NSLocalizedString("common_message_volumeLow", comment: "VolumeWarningLevel")
+                String(localized: "kid_message_volumeLow")
             )
         }
     }

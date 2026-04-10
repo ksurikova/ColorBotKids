@@ -31,7 +31,7 @@ struct ConfigurationContainerView<Content: View>: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: error != nil)
         // The Timer Logic: Triggered whenever the error changes
         .task(id: error?.localizedDescription) {
-            guard let error, let duration else { return }
+            guard error != nil, let duration else { return }
 
             try? await Task.sleep(for: .seconds(duration))
 
@@ -55,7 +55,8 @@ struct ConfigurationContainerView<Content: View>: View {
 
 #Preview("error") {
     ConfigurationContainerView(
-        error: AppError.initializationFailed,
+        error: AppError
+            .configurationFailed(ConfigurationError.aiConfigurationMissing.localizedDescription),
         onDismissError: {},
         content: {
             Color.blue

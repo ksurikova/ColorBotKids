@@ -58,11 +58,12 @@ final class ConfigurationManager {
         resolver.resolveLocale(locale: nil)
     }
 
-    func load() {
+    func load() throws {
         do {
             configuration = try storage.loadConfiguration()
         } catch {
             configuration = AppConfiguration()
+            throw error
         }
     }
 

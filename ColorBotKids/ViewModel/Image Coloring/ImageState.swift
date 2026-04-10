@@ -10,8 +10,7 @@ enum ImageState: Equatable {
     case idle
     case unsavedChanges
     case saving
-    case failed(ImageSaveServiceError)
-    //  case fatalError(AppError) // Non-recoverable (blocks UI)
+    case failed(KidFriendlyError)
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
@@ -19,7 +18,7 @@ enum ImageState: Equatable {
              (.saving, .saving):
             return true
         case let (.failed(lhsError), .failed(rhsError)):
-            return lhsError.localizedDescription == rhsError.localizedDescription
+            return lhsError == rhsError
         default:
             return false
         }

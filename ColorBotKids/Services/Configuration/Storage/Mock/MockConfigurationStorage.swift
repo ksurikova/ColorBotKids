@@ -23,7 +23,7 @@ final class MockConfigurationStorage: ConfigurationStorage {
     func loadConfiguration() throws -> AppConfiguration {
         if !shouldLoadConfig {
             // Simulate missing configuration (first launch scenario)
-            throw ConfigurationError.fileNotFound
+            return AppConfiguration(aiConfig: nil, speechConfig: nil)
         }
         if simulateCorruption {
             // Simulate corrupted saved data

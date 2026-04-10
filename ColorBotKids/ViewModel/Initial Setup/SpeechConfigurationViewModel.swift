@@ -20,7 +20,7 @@ final class SpeechConfigurationViewModel: ObservableObject {
         var capabilities: SpeechCapabilities?
         var missingPermissions: Bool = false
         var canSave: Bool = false
-        var warningMessage: LocalizedStringKey?
+        var warningMessage: String?
     }
 
     enum ScreenState: Equatable {
@@ -230,8 +230,7 @@ final class SpeechConfigurationViewModel: ObservableObject {
             draftService.clearDraft()
             state = .content(state.content)
         } catch {
-            let appError = (error as? AppError) ?? .configurationFailed(error.localizedDescription)
-            state = .error(appError, state.content)
+            state = .error(error.asAppError, state.content)
         }
     }
 

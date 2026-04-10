@@ -11,31 +11,18 @@ enum ImageSaveServiceError: LocalizedError {
     case noPermission
     case invalidImageToSave
     case savingIsInterrupted
-    case unknownError(Error?)
+    case unknownError
 
     var errorDescription: String? {
         switch self {
         case .noPermission:
-            return NSLocalizedString(
-                "image_save_error_noPermission",
-                comment: "ImageSaveServiceError"
-            )
+            return String(localized: "image_save_error_noPermission")
         case .invalidImageToSave:
-            return NSLocalizedString(
-                "image_save_error_invalidImageToSave",
-                comment: "ImageSaveServiceError"
-            )
+            return String(localized: "image_save_error_invalidImageToSave")
         case .savingIsInterrupted:
-            return NSLocalizedString(
-                "image_save_error_savingIsInterrupted",
-                comment: "ImageSaveServiceError"
-            )
-        case let .unknownError(error):
-            let format = NSLocalizedString(
-                "image_save_error_unknownError",
-                comment: "ImageSaveServiceError"
-            )
-            return String(format: format, error?.localizedDescription ?? "unknown error")
+            return String(localized: "image_save_error_savingIsInterrupted")
+        case .unknownError:
+            return String(localized: "image_save_error_unknownError")
         }
     }
 }

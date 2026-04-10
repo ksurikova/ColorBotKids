@@ -27,3 +27,9 @@ enum Helpers {
         return error.localizedDescription
     }
 }
+
+extension String {
+    static func localized(_ key: String.LocalizationValue) -> String {
+        String(localized: key)
+    }
+}

@@ -63,7 +63,7 @@ struct ActionButtonsView: View {
 struct HintBubbleView: View {
     var body: some View {
         VStack(spacing: 4) {
-            Text("Tap when done!")
+            Text("main_hint")
                 .hintStyle()
                 .padding(.vertical, 8)
                 .padding(.horizontal, 12)

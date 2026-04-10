@@ -8,10 +8,6 @@ import AVFoundation
 import Foundation
 import Speech
 
-enum SpeechTimeoutError: Error {
-    case timeout
-}
-
 final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
     SFSpeechRecognizerDelegate {
     // MARK: - Private State
@@ -44,12 +40,10 @@ final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
 
     init(settings: SpeechRecognitionSettings) throws {
         guard let recognizer = SFSpeechRecognizer(locale: settings.locale) else {
-            throw SpeechRecognitionError
-                .initializationFailed(SpeechRecognitionError.recognizerNotSupported)
+            throw SpeechRecognitionError.initializationFailed
         }
         if settings.requiresOnDevice, !recognizer.supportsOnDeviceRecognition {
-            throw SpeechRecognitionError
-                .initializationFailed(SpeechRecognitionError.recognizerNotSupported)
+            throw SpeechRecognitionError.initializationFailed
         }
         speechRecognizer = recognizer
         self.settings = settings
@@ -122,27 +116,19 @@ final class LiveSpeechRecognitionService: NSObject, SpeechRecognitionService,
                     try await Task.sleep(nanoseconds: 1 * 1_000_000_000)
                 }
                 progressHandler?(0)
-                throw SpeechTimeoutError.timeout
+                throw SpeechRecognitionError.timeout
             }
 
             do {
                 let result = try await group.next()
                 group.cancelAll()
                 return result ?? ""
+            } catch SpeechRecognitionError.timeout {
+                group.cancelAll()
+                self.cancelRecognition()
+                throw SpeechRecognitionError.timeout
             } catch {
                 group.cancelAll()
-                if let timeoutErr = error as? SpeechTimeoutError, timeoutErr == .timeout {
-                    self.cancelRecognition()
-                    throw SpeechRecognitionError.recognitionFailed(
-                        NSError(
-                            domain: "SpeechService",
-                            code: -1,
-                            userInfo: [
-                                NSLocalizedDescriptionKey: "Recognition timed out. Please try again.",
-                            ]
-                        )
-                    )
-                }
                 throw error
             }
         }
@@ -234,9 +220,7 @@ private extension LiveSpeechRecognitionService {
                 guard let self else { return }
 
                 if let error {
-                    self
-                        .teardown(resumingWith: .failure(SpeechRecognitionError
-                                .recognitionFailed(error)))
+                    self.teardown(resumingWith: .failure(SpeechRecognitionError.recognitionFailed))
                     return
                 }
 
@@ -288,7 +272,7 @@ private extension LiveSpeechRecognitionService {
 
         teardownLock.unlock()
 
-        // Fix #4: Resume the continuation OUTSIDE the lock
+        // Resume the continuation OUTSIDE the lock
         if let result {
             continuationToResume?.resume(with: result)
         }

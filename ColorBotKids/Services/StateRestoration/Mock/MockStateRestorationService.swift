@@ -29,7 +29,7 @@ class MockStateRestorationService: StateRestorationService {
         savedDrawing = drawingData
 
         if shouldFailSave {
-            throw saveErrorToThrow ?? StateRestorationError.fileError("Mock save failure")
+            throw saveErrorToThrow ?? StateRestorationError.fileNotFound
         }
 
         let mockURL = URL(fileURLWithPath: "/mock/state/\(UUID().uuidString)")
@@ -37,16 +37,16 @@ class MockStateRestorationService: StateRestorationService {
         return mockURL
     }
 
-    func loadState(from url: URL) -> (image: UIImage, drawingData: Data)? {
+    func loadState(from url: URL) throws -> (image: UIImage, drawingData: Data) {
         loadedURL = url
 
         if shouldFailLoad {
-            return nil
+            throw StateRestorationError.decodingFailed
         }
 
         guard let image = mockLoadImage,
               let drawingData = mockLoadDrawingData else {
-            return nil
+            throw StateRestorationError.decodingFailed
         }
 
         return (image, drawingData)
@@ -77,7 +77,7 @@ extension MockStateRestorationService {
     static var failedSave: MockStateRestorationService {
         let mock = MockStateRestorationService()
         mock.shouldFailSave = true
-        mock.saveErrorToThrow = .fileError("Mock save failure")
+        mock.saveErrorToThrow = .fileNotFound
         return mock
     }
 

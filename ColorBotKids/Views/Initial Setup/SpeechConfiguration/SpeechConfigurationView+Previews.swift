@@ -44,7 +44,7 @@ struct SpeechConfigurationView_Previews: PreviewProvider {
                     ),
                     missingPermissions: false,
                     canSave: false,
-                    warningMessage: "Not Supported"
+                    warningMessage: "text_to_speech_error_unsupportedSettings"
                 )),
                 name: "Inconsistent"
             )
@@ -60,7 +60,7 @@ struct SpeechConfigurationView_Previews: PreviewProvider {
 
             // 6. Error
             previewFor(
-                state: .error(.unknown("Something went wrong"), .init(
+                state: .error(.unknown(String.localized("common_unknown_error")), .init(
                     capabilities: .mock(locale: Locale(identifier: "en-US")),
                     canSave: true
                 )),

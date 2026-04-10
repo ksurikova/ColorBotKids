@@ -29,29 +29,29 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
             // Generating
             previewFor(state: .generatingImage(from: "A cute blue robot"), name: "Generating")
 
-            // Temporary Error
-            previewFor(
-                state: .temporaryError(
-                    "Something went wrong with the microphone",
-                    prompt: "A cute blue robot jumping on a cloud"
-                ),
-                name: "Error Banner"
-            )
+//            // Temporary Error
+//            previewFor(
+//                state: .temporaryError(
+//                    KidFriendlyError.microphoneOff,
+//                    prompt: "A cute blue robot jumping on a cloud"
+//                ),
+//                name: "Error Banner"
+//            )
 
             // Settngs Needed Error
-            previewFor(
-                state: .configurationRequired(
-                    "Check your settings and try again",
-                    prompt: "A cute blue robot jumping on a cloud"
-                ),
-                name: "Fix Configuration"
-            )
+//            previewFor(
+//                state: .configurationRequired(
+//                    KidFriendlyError.needsParentsHelp,
+//                    prompt: "A cute blue robot jumping on a cloud"
+//                ),
+//                name: "Fix Configuration"
+//            )
 
-            // Fatal Error
-            previewFor(
-                state: .fatalError(.serviceCreationFailed("Mock failure")),
-                name: "Fatal Error"
-            )
+//            // Fatal Error
+//            previewFor(
+//                state: .fatalError(.configurationInvalid),
+//                name: "Fatal Error"
+//            )
         }
     }
 
@@ -63,7 +63,7 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
         let servicesManager = container.mainServicesManager
 
         // 1. Ensure configuration is loaded (synchronous for mocks)
-        servicesManager.configurationManager.load()
+        try? servicesManager.configurationManager.load()
 
         // 2. Create the service stack
         try? servicesManager.prepareServices()

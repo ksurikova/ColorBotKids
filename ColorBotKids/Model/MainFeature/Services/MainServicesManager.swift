@@ -60,7 +60,7 @@ final class MainServicesManager {
         }
 
         guard configurationManager.isFullyConfigured else {
-            throw AppError.serviceCreationFailed("App not fully configured")
+            throw ConfigurationError.configurationInvalid
         }
 
         // Attempt to create services
@@ -71,12 +71,10 @@ final class MainServicesManager {
             )
 
             print("✅ Services created successfully")
-        } catch let error as ConfigurationError {
-            // Map ConfigurationError to AppError
-            throw AppError.map(error)
         } catch {
-            // Generic service creation error
-            throw AppError.serviceCreationFailed(error.localizedDescription)
+            // Because our factory throws ConfigurationError (and others map to AppError),
+            // we can cleanly use the centralized mapping extension we already built!
+            throw error.asAppError
         }
     }
 }

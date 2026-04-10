@@ -23,20 +23,31 @@ class DefaultStateRestorationService: StateRestorationService {
     }
 
     init() {
-        try? FileManager.default.createDirectory(
-            at: sessionsDirectory,
-            withIntermediateDirectories: true
-        )
+        do {
+            try FileManager.default.createDirectory(
+                at: sessionsDirectory,
+                withIntermediateDirectories: true
+            )
+        } catch {
+            // Log the specific file system error for developer diagnostics
+            print("Failed to create base sessions directory: \(error.localizedDescription)")
+        }
     }
 
-    func loadState(from url: URL) -> (image: UIImage, drawingData: Data)? {
+    func loadState(from url: URL) throws -> (image: UIImage, drawingData: Data) {
         guard FileManager.default.fileExists(atPath: url.path) else {
-            return nil
+            throw StateRestorationError.fileNotFound
         }
 
-        guard let image = UIImage(contentsOfFile: imageURL(for: url).path),
-              let drawingData = try? Data(contentsOf: drawingURL(for: url)) else {
-            return nil
+        guard let image = UIImage(contentsOfFile: imageURL(for: url).path) else {
+            throw StateRestorationError.decodingFailed
+        }
+
+        let drawingData: Data
+        do {
+            drawingData = try Data(contentsOf: drawingURL(for: url))
+        } catch {
+            throw StateRestorationError.decodingFailed
         }
 
         return (image, drawingData)
@@ -49,18 +60,32 @@ class DefaultStateRestorationService: StateRestorationService {
 
     func saveState(image: UIImage, drawingData: Data) throws -> URL {
         guard let imageData = image.pngData() else {
-            throw StateRestorationError.encodingError("Failed to get PNG data")
+            throw StateRestorationError.imageEncodingFailed
         }
 
         let stateID = UUID().uuidString
         let stateURL = sessionsDirectory.appendingPathComponent(stateID)
 
-        try FileManager.default.createDirectory(
-            at: stateURL,
-            withIntermediateDirectories: true
-        )
-        try imageData.write(to: imageURL(for: stateURL), options: .atomic)
-        try drawingData.write(to: drawingURL(for: stateURL), options: .atomic)
+        do {
+            try FileManager.default.createDirectory(
+                at: stateURL,
+                withIntermediateDirectories: true
+            )
+        } catch {
+            throw StateRestorationError.directoryCreationFailed
+        }
+
+        do {
+            try imageData.write(to: imageURL(for: stateURL), options: .atomic)
+        } catch {
+            throw StateRestorationError.imageWriteFailed
+        }
+
+        do {
+            try drawingData.write(to: drawingURL(for: stateURL), options: .atomic)
+        } catch {
+            throw StateRestorationError.drawingWriteFailed
+        }
 
         return stateURL
     }

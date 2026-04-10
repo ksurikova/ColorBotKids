@@ -14,7 +14,6 @@ class ContentViewModel: ObservableObject {
         case notStarted
         case loading
         case ready
-        case failed(AppError)
 
         var isReady: Bool {
             if case .ready = self { return true }
@@ -52,7 +51,7 @@ class ContentViewModel: ObservableObject {
 
         // Load configuration, check permissions, and restore session in parallel (because these are
         // independent operations)
-        async let configLoad: Void = mainServicesManager.configurationManager.load()
+        async let configLoad: Void = loadConfiguration()
         async let permissionsCheck: Void = permissionManager.checkAll()
         async let sessionRestore: Void = sessionManager.restoreLast()
 
@@ -60,5 +59,13 @@ class ContentViewModel: ObservableObject {
         _ = await(configLoad, permissionsCheck, sessionRestore)
 
         initializationState = .ready
+    }
+
+    private func loadConfiguration() async {
+        do {
+            try mainServicesManager.configurationManager.load()
+        } catch {
+            print("⚠️ Configuration load failed silently: \(error.localizedDescription)")
+        }
     }
 }

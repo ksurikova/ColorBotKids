@@ -20,26 +20,43 @@ final class CommonConfigurationStorage: ConfigurationStorage {
     }
 
     func loadConfiguration() throws -> AppConfiguration {
-        let provider = defaults.string(forKey: Keys.provider)
-            .flatMap { ImageProvider(rawValue: $0) }
-        let apiKey = try? keychain.read(key: Keys.apiKeyIdentifier)
-        let aiConfig: AIConfiguration? = if let provider, let apiKey {
-            AIConfiguration(provider: provider, apiKey: apiKey)
-        } else {
-            nil
+        let providerString = defaults.string(forKey: Keys.provider)
+        let provider = providerString.flatMap { ImageProvider(rawValue: $0) }
+
+        let apiKey: String?
+        do {
+            apiKey = try keychain.read(key: Keys.apiKeyIdentifier)
+        } catch {
+            apiKey = nil // Keep as nil, we validate completeness below
         }
+
+        let aiConfig: AIConfiguration?
+        if let provider {
+            guard let apiKey else {
+                throw ConfigurationError.corruptedData
+            }
+            aiConfig = AIConfiguration(provider: provider, apiKey: apiKey)
+        } else if apiKey != nil {
+            throw ConfigurationError.corruptedData
+        } else {
+            aiConfig = nil
+        }
+
         let language = defaults.string(forKey: Keys.speechLanguage)
         let recognizeOnlyOnDevice = defaults.bool(forKey: Keys.recognizeOnlyOnDevice)
         let autoPlayConfirmation = defaults.bool(forKey: Keys.autoPlayConfirmation)
-        let speechConfig: SpeechConfiguration? = if let language {
-            SpeechConfiguration(
+
+        let speechConfig: SpeechConfiguration?
+        if let language {
+            speechConfig = SpeechConfiguration(
                 language: language,
                 useOnlyOnDevice: recognizeOnlyOnDevice,
                 autoPlayConfirmation: autoPlayConfirmation
             )
         } else {
-            nil
+            speechConfig = nil
         }
+
         return AppConfiguration(
             aiConfig: aiConfig,
             speechConfig: speechConfig
@@ -50,7 +67,11 @@ final class CommonConfigurationStorage: ConfigurationStorage {
         // Save non-sensitive data to UserDefaults
         defaults.set(config.provider.rawValue, forKey: Keys.provider)
         // Save sensitive data to Keychain
-        try keychain.save(key: Keys.apiKeyIdentifier, value: config.apiKey)
+        do {
+            try keychain.save(key: Keys.apiKeyIdentifier, value: config.apiKey)
+        } catch {
+            throw ConfigurationError.failedToSave
+        }
     }
 
     func saveSpeechConfiguration(_ config: SpeechConfiguration) throws {
@@ -62,7 +83,11 @@ final class CommonConfigurationStorage: ConfigurationStorage {
         // This is more atomic and efficient
         // AI Configuration
         defaults.set(ai.provider.rawValue, forKey: Keys.provider)
-        try keychain.save(key: Keys.apiKeyIdentifier, value: ai.apiKey)
+        do {
+            try keychain.save(key: Keys.apiKeyIdentifier, value: ai.apiKey)
+        } catch {
+            throw ConfigurationError.failedToSave
+        }
 
         // Speech Configuration
         defaults.set(speech.language, forKey: Keys.speechLanguage)
@@ -74,6 +99,10 @@ final class CommonConfigurationStorage: ConfigurationStorage {
     func deleteAll() throws {
         defaults.removeObject(forKey: Keys.provider)
         defaults.removeObject(forKey: Keys.speechLanguage)
-        try? keychain.delete(key: Keys.apiKeyIdentifier)
+        do {
+            try keychain.delete(key: Keys.apiKeyIdentifier)
+        } catch {
+            throw ConfigurationError.failedToDelete
+        }
     }
 }

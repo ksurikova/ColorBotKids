@@ -12,13 +12,16 @@ struct PermissionRestrictedAlertModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .alert("common_errorTitle_permissionRestricted", isPresented: $isPresented) {
-                Button("common_action_openSettings") {
+            .alert(
+                String(localized: "common_errorTitle_permissionRestricted"),
+                isPresented: $isPresented
+            ) {
+                Button(String(localized: "common_action_openSettings")) {
                     onOpenSettings()
                 }
-                Button("common_action_cancel", role: .cancel) {}
+                Button(String(localized: "common_action_cancel"), role: .cancel) {}
             } message: {
-                Text("common_errorMessage_permissionRestricted")
+                Text(String(localized: "common_errorMessage_permissionRestricted"))
             }
     }
 }

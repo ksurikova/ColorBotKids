@@ -8,7 +8,7 @@ import SwiftUI
 
 protocol StateRestorationService {
     func saveState(image: UIImage, drawingData: Data) throws -> URL
-    func loadState(from url: URL) -> (image: UIImage, drawingData: Data)?
+    func loadState(from url: URL) throws -> (image: UIImage, drawingData: Data)
     func clearState(at url: URL?)
 }
 

@@ -74,7 +74,7 @@ struct SettingsView_Previews: PreviewProvider {
             // So we rely on the child producing it.
             // SpeechConfigurationViewModel.state is @Published.
             viewModel.speechViewModel.state = .error(
-                .unknown("Speech recognition unavailable"),
+                .unknown(String.localized("common_unknown_error")),
                 viewModel.speechViewModel.state.content
             )
         }

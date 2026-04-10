@@ -27,7 +27,7 @@ extension TTSWarning {
         case .failedToPlay:
             return (
                 "speaker.slash.fill",
-                NSLocalizedString("tts_error_failedToPlay", comment: "TTSWarning")
+                String(localized: "kid_error_failed_to_play")
             )
         }
     }
@@ -122,10 +122,8 @@ final class SpeechRecognitionViewModel: ObservableObject {
             try servicesManager.prepareServices()
             configureTTSCallbacks()
             state = .waiting
-        } catch let error as AppError {
-            state = .fatalError(error)
         } catch {
-            state = .fatalError(.serviceCreationFailed(error.localizedDescription))
+            state = .fatalError(error.asKidFriendlyError)
         }
     }
 
@@ -141,7 +139,10 @@ final class SpeechRecognitionViewModel: ObservableObject {
     }
 
     func toggleRecording() async {
-        guard let speechService else { return }
+        guard let speechService else {
+            state = .fatalError(.needsParentsHelp(AppError.speechServiceNotExist))
+            return
+        }
 
         if state == .processingSpeech {
             state = .analysingSpeech
@@ -149,14 +150,14 @@ final class SpeechRecognitionViewModel: ObservableObject {
                 let text = try await speechService.stopRecognition(progressHandler: nil)
                 guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     state = .temporaryError(
-                        String(localized: "speech_error_noSpeechDetected"),
+                        .noSpeechDetected,
                         prompt: nil
                     )
                     return
                 }
                 state = .speechRecognized(text)
             } catch {
-                state = .temporaryError(error.localizedDescription, prompt: nil)
+                state = .temporaryError(error.asKidFriendlyError, prompt: nil)
             }
         } else {
             do {
@@ -164,7 +165,7 @@ final class SpeechRecognitionViewModel: ObservableObject {
                 state = .processingSpeech
             } catch {
                 state = .temporaryError(
-                    error.localizedDescription,
+                    error.asKidFriendlyError,
                     prompt: state.recognizedText
                 )
             }
@@ -172,16 +173,39 @@ final class SpeechRecognitionViewModel: ObservableObject {
     }
 
     func generateImage() async {
-        guard let prompt = state.recognizedText, let imageService else { return }
-
+        guard let prompt = state.recognizedText else { return }
+        // Use the services from the model safely
+        guard let imageService = imageService else {
+            state = .fatalError(.needsParentsHelp(AppError.aiServiceNotExist))
+            return
+        }
+        // if we have it, let's stop
+        ttsService?.stop()
         state = .generatingImage(from: prompt)
 
         do {
-            // Call image generation service
-            // Note: In real app, we likely pass this image to session manager or router
-            _ = try await imageService.generateImage(from: prompt)
+            let image = try await imageService.generateImage(from: prompt)
+            // This triggers the Router to move to .imageEditor because Router observes
+            // sessionManager
+            sessionManager.start(with: image)
+            state = .waiting
+        } catch let error as ImageGenerationError {
+            switch error {
+            case .unauthorized, .accessRestricted, .invalidAPIKey:
+                state = .configurationRequired(
+                    .needsParentsHelp(error.asAppError),
+                    prompt: prompt
+                )
+            case .rateLimitExceeded:
+                state = .temporaryError(
+                    .tryAgainLater,
+                    prompt: prompt
+                )
+            default:
+                state = .temporaryError(error.asKidFriendlyError, prompt: prompt)
+            }
         } catch {
-            state = .temporaryError(error.localizedDescription, prompt: prompt)
+            state = .temporaryError(error.asKidFriendlyError, prompt: prompt)
         }
     }
 

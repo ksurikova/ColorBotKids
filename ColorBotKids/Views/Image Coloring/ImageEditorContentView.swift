@@ -99,7 +99,7 @@ private extension ImageEditorContentView {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 } else if showSuccess {
                     SuccessBannerView(
-                        message: NSLocalizedString("color_message_successSaving", comment: ""),
+                        message: String.localized("color_message_successSaving"),
                         onClose: onDismissSuccess
                     )
                     .transition(.move(edge: .top).combined(with: .opacity))

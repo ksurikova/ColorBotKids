@@ -29,10 +29,10 @@ class DefaultImageSaveService: ImageSaveService {
                     case PHPhotosErrorOperationInterrupted:
                         continuation.resume(throwing: ImageSaveServiceError.savingIsInterrupted)
                     default:
-                        continuation.resume(throwing: ImageSaveServiceError.unknownError(error))
+                        continuation.resume(throwing: ImageSaveServiceError.unknownError)
                     }
                 } else {
-                    continuation.resume(throwing: ImageSaveServiceError.unknownError(error))
+                    continuation.resume(throwing: ImageSaveServiceError.unknownError)
                 }
             }
         }

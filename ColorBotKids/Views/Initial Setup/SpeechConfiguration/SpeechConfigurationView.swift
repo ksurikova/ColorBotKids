@@ -48,7 +48,7 @@ struct SpeechConfigurationView: View {
                     if let warning = viewModel.state.content.warningMessage {
                         CriticalErrorPieceView(
                             title: "settings_errorTitle_speech",
-                            text: warning
+                            text: LocalizedStringKey(warning)
                         )
                         .transition(.asymmetric(
                             insertion: .move(edge: .top).combined(with: .opacity),

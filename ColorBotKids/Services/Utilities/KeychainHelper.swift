@@ -54,17 +54,3 @@ final class KeychainHelper {
         SecItemDelete(query as CFDictionary)
     }
 }
-
-enum KeychainError: LocalizedError {
-    case saveFailed
-    case readFailed
-
-    var errorDescription: String? {
-        switch self {
-        case .saveFailed:
-            return NSLocalizedString("keychain_error_saveFailed", comment: "KeychainError")
-        case .readFailed:
-            return NSLocalizedString("keychain_error_readFailed", comment: "KeychainError")
-        }
-    }
-}
