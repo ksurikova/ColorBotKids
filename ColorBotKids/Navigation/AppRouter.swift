@@ -8,6 +8,17 @@ import Combine
 import SwiftUI
 
 @MainActor
+protocol AppDependencies {
+    var mainServicesManager: MainServicesManager { get }
+    var permissionManager: PermissionManager { get }
+    var sessionManager: SessionManager { get }
+    var imageToolingManager: ImageToolingManager { get }
+    var settingsService: SettingsService { get }
+    var speechConfigurationDraftService: SpeechConfigurationDraftService { get }
+    var aiConfigurationDraftService: AIConfigurationDraftService { get }
+}
+
+@MainActor
 final class AppRouter: ObservableObject {
     // MARK: - Route Definition
 
@@ -46,23 +57,15 @@ final class AppRouter: ObservableObject {
         mainServicesManager.configurationManager
     }
 
-    init(
-        mainServicesManager: MainServicesManager,
-        permissionManager: PermissionManager,
-        sessionManager: SessionManager,
-        imageToolingManager: ImageToolingManager,
-        settingsService: SettingsService,
-        speechConfigurationDraftService: SpeechConfigurationDraftService,
-        aiConfigurationDraftService: AIConfigurationDraftService
-    ) {
-        self.mainServicesManager = mainServicesManager
-        self.permissionManager = permissionManager
-        self.sessionManager = sessionManager
-        self.imageToolingManager = imageToolingManager
-        self.settingsService = settingsService
-        self.speechConfigurationDraftService = speechConfigurationDraftService
-        self.aiConfigurationDraftService = aiConfigurationDraftService
-
+    init(dependencies: AppDependencies) {
+        self.mainServicesManager = dependencies.mainServicesManager
+        self.permissionManager = dependencies.permissionManager
+        self.sessionManager = dependencies.sessionManager
+        self.imageToolingManager = dependencies.imageToolingManager
+        self.settingsService = dependencies.settingsService
+        self.speechConfigurationDraftService = dependencies.speechConfigurationDraftService
+        self.aiConfigurationDraftService = dependencies.aiConfigurationDraftService
+        
         setupObservers()
     }
 

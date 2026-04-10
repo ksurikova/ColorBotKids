@@ -10,16 +10,17 @@ import PencilKit
 import SwiftUI
 
 @MainActor
-final class MockDependencyContainer: AppDependencyContainer {
+final class MockDependencyContainer: AppDependencyContainer, AppDependencies {
     let mainServicesManager: MainServicesManager
     let permissionManager: PermissionManager
     let sessionManager: SessionManager
     let imageToolingManager: ImageToolingManager
     let contentViewModel: ContentViewModel
-    let router: AppRouter
+    lazy var router: AppRouter = AppRouter(dependencies: self)
     let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
+    let settingsService: SettingsService
 
     init(
         configuration: AppConfiguration? = nil,
@@ -38,6 +39,7 @@ final class MockDependencyContainer: AppDependencyContainer {
         )
         speechConfigurationDraftService = MockSpeechConfigurationDraftService()
         aiConfigurationDraftService = MockAIConfigurationDraftService()
+        settingsService = MockSettingsService()
 
         // Build View Models & Router
         contentViewModel = ContentViewModel(
@@ -45,17 +47,6 @@ final class MockDependencyContainer: AppDependencyContainer {
             permissionManager: permissionManager,
             sessionManager: sessionManager,
             imageToolingManager: imageToolingManager
-        )
-
-        let settingsService = MockSettingsService()
-        router = AppRouter(
-            mainServicesManager: mainServicesManager,
-            permissionManager: permissionManager,
-            sessionManager: sessionManager,
-            imageToolingManager: imageToolingManager,
-            settingsService: settingsService,
-            speechConfigurationDraftService: speechConfigurationDraftService,
-            aiConfigurationDraftService: aiConfigurationDraftService
         )
     }
 

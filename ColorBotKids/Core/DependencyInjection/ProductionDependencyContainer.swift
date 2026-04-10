@@ -10,7 +10,7 @@ import PencilKit
 import SwiftUI
 
 @MainActor
-final class ProductionDependencyContainer: AppDependencyContainer {
+final class ProductionDependencyContainer: AppDependencyContainer, AppDependencies {
     // MARK: - Selected Service Types
 
     // Define types here to ensure consistency between initialization and availability checks
@@ -22,10 +22,11 @@ final class ProductionDependencyContainer: AppDependencyContainer {
     let sessionManager: SessionManager
     let imageToolingManager: ImageToolingManager
     let contentViewModel: ContentViewModel
-    let router: AppRouter
+    lazy var router: AppRouter = AppRouter(dependencies: self)
     let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
+    let settingsService: SettingsService
 
     init() {
         imageToolingManager = Self.makeToolingManager()
@@ -38,6 +39,7 @@ final class ProductionDependencyContainer: AppDependencyContainer {
         mainServicesManager = Self.makeMainServicesManager(resolver: speechCapabilityResolver)
         speechConfigurationDraftService = LocalSpeechDraftService()
         aiConfigurationDraftService = LocalAIDraftService()
+        settingsService = DefaultSettingsService()
 
         // Build View Models & Router
         contentViewModel = ContentViewModel(
@@ -45,17 +47,6 @@ final class ProductionDependencyContainer: AppDependencyContainer {
             permissionManager: permissionManager,
             sessionManager: sessionManager,
             imageToolingManager: imageToolingManager
-        )
-
-        let settingsService = DefaultSettingsService()
-        router = AppRouter(
-            mainServicesManager: mainServicesManager,
-            permissionManager: permissionManager,
-            sessionManager: sessionManager,
-            imageToolingManager: imageToolingManager,
-            settingsService: settingsService,
-            speechConfigurationDraftService: speechConfigurationDraftService,
-            aiConfigurationDraftService: aiConfigurationDraftService
         )
     }
 
