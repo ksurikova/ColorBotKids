@@ -19,7 +19,7 @@ protocol AppDependencies {
 }
 
 @MainActor
-final class AppRouter: ObservableObject {
+final class AppRouter: ObservableObject, AppDependencies {
     // MARK: - Route Definition
 
     enum Route: Hashable {
@@ -33,13 +33,13 @@ final class AppRouter: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let mainServicesManager: MainServicesManager
-    private let permissionManager: PermissionManager
-    private let sessionManager: SessionManager
-    private let imageToolingManager: ImageToolingManager
-    private let settingsService: SettingsService
-    private let speechConfigurationDraftService: SpeechConfigurationDraftService
-    private let aiConfigurationDraftService: AIConfigurationDraftService
+    let mainServicesManager: MainServicesManager
+    let permissionManager: PermissionManager
+    let sessionManager: SessionManager
+    let imageToolingManager: ImageToolingManager
+    let settingsService: SettingsService
+    let speechConfigurationDraftService: SpeechConfigurationDraftService
+    let aiConfigurationDraftService: AIConfigurationDraftService
 
     private lazy var editorPersistenceInteractor: EditorPersistenceInteractor =
         .init(sessionManager: sessionManager)
@@ -58,14 +58,14 @@ final class AppRouter: ObservableObject {
     }
 
     init(dependencies: AppDependencies) {
-        self.mainServicesManager = dependencies.mainServicesManager
-        self.permissionManager = dependencies.permissionManager
-        self.sessionManager = dependencies.sessionManager
-        self.imageToolingManager = dependencies.imageToolingManager
-        self.settingsService = dependencies.settingsService
-        self.speechConfigurationDraftService = dependencies.speechConfigurationDraftService
-        self.aiConfigurationDraftService = dependencies.aiConfigurationDraftService
-        
+        mainServicesManager = dependencies.mainServicesManager
+        permissionManager = dependencies.permissionManager
+        sessionManager = dependencies.sessionManager
+        imageToolingManager = dependencies.imageToolingManager
+        settingsService = dependencies.settingsService
+        speechConfigurationDraftService = dependencies.speechConfigurationDraftService
+        aiConfigurationDraftService = dependencies.aiConfigurationDraftService
+
         setupObservers()
     }
 
@@ -181,10 +181,7 @@ final class AppRouter: ObservableObject {
     private func buildMainStack(path: Binding<NavigationPath>) -> some View {
         NavigationStack(path: path) {
             SpeechRecognitionView(
-                configManager: configurationManager,
-                permissionManager: permissionManager,
-                draftService: speechConfigurationDraftService,
-                aiDraftService: aiConfigurationDraftService,
+                dependencies: self,
                 viewModel: speechViewModel()
             )
             .navigationDestination(for: Route.self) { route in
@@ -212,9 +209,7 @@ final class AppRouter: ObservableObject {
         guard sessionManager.currentSession != nil else { return nil }
         return ImageEditorViewModel(
             persistenceInteractor: editorPersistenceInteractor,
-            toolingManager: imageToolingManager,
-            permissionManager: permissionManager,
-            settingsService: settingsService
+            dependencies: self
         )
     }
 }

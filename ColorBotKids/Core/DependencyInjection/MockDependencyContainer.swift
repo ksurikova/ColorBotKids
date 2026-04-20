@@ -15,8 +15,8 @@ final class MockDependencyContainer: AppDependencyContainer, AppDependencies {
     let permissionManager: PermissionManager
     let sessionManager: SessionManager
     let imageToolingManager: ImageToolingManager
-    let contentViewModel: ContentViewModel
-    lazy var router: AppRouter = AppRouter(dependencies: self)
+    lazy var contentViewModel: ContentViewModel = .init(dependencies: self)
+    lazy var router: AppRouter = .init(dependencies: self)
     let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
@@ -40,14 +40,6 @@ final class MockDependencyContainer: AppDependencyContainer, AppDependencies {
         speechConfigurationDraftService = MockSpeechConfigurationDraftService()
         aiConfigurationDraftService = MockAIConfigurationDraftService()
         settingsService = MockSettingsService()
-
-        // Build View Models & Router
-        contentViewModel = ContentViewModel(
-            mainServicesManager: mainServicesManager,
-            permissionManager: permissionManager,
-            sessionManager: sessionManager,
-            imageToolingManager: imageToolingManager
-        )
     }
 
     // MARK: - Factory Methods

@@ -59,14 +59,12 @@ final class ImageEditorViewModel: ObservableObject {
 
     init(
         persistenceInteractor: EditorPersistenceInteractor,
-        toolingManager: ImageToolingManager,
-        permissionManager: PermissionManager,
-        settingsService: SettingsService
+        dependencies: AppDependencies
     ) {
         self.persistenceInteractor = persistenceInteractor
-        self.toolingManager = toolingManager
-        self.permissionManager = permissionManager
-        self.settingsService = settingsService
+        toolingManager = dependencies.imageToolingManager
+        permissionManager = dependencies.permissionManager
+        settingsService = dependencies.settingsService
 
         guard let initialImage = persistenceInteractor.initialImage else {
             fatalError(

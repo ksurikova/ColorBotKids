@@ -78,10 +78,7 @@ struct SpeechRecognitionView_Previews: PreviewProvider {
         viewModel.state = state
 
         return SpeechRecognitionView(
-            configManager: servicesManager.configurationManager,
-            permissionManager: container.permissionManager,
-            draftService: container.speechConfigurationDraftService,
-            aiDraftService: container.aiConfigurationDraftService,
+            dependencies: container,
             viewModel: viewModel
         )
         .previewDisplayName(name)

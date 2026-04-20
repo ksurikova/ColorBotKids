@@ -40,20 +40,8 @@ struct SettingsView_Previews: PreviewProvider {
         let container = makeContainer(for: state)
         let configManager = container.mainServicesManager.configurationManager
 
-        // Create Mock Draft Services
-        // Assuming MockSpeechConfigurationDraftService is available (from
-        // SpeechConfigurationView+Previews)
-        let speechDraftService = MockSpeechConfigurationDraftService()
-        // Assuming MockAIConfigurationDraftService is available
-        let aiDraftService = MockAIConfigurationDraftService()
-
         // Create ViewModel
-        let viewModel = SettingsViewModel(
-            configManager: configManager,
-            permissionManager: container.permissionManager,
-            draftService: speechDraftService,
-            aiDraftService: aiDraftService
-        )
+        let viewModel = SettingsViewModel(dependencies: container)
 
         // Manipulate ViewModel to reflect desired state
         switch state {

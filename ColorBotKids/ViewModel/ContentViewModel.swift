@@ -29,16 +29,11 @@ class ContentViewModel: ObservableObject {
     let sessionManager: SessionManager
     let imageToolingManager: ImageToolingManager
 
-    init(
-        mainServicesManager: MainServicesManager,
-        permissionManager: PermissionManager,
-        sessionManager: SessionManager,
-        imageToolingManager: ImageToolingManager
-    ) {
-        self.mainServicesManager = mainServicesManager
-        self.permissionManager = permissionManager
-        self.sessionManager = sessionManager
-        self.imageToolingManager = imageToolingManager
+    init(dependencies: AppDependencies) {
+        mainServicesManager = dependencies.mainServicesManager
+        permissionManager = dependencies.permissionManager
+        sessionManager = dependencies.sessionManager
+        imageToolingManager = dependencies.imageToolingManager
     }
 
     func initialize() async {

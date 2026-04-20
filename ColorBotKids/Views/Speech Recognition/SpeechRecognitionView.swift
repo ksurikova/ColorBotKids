@@ -8,24 +8,19 @@
 import SwiftUI
 
 struct SpeechRecognitionView: View {
-    let configManager: ConfigurationManager
-    let permissionManager: PermissionManager
-    let draftService: SpeechConfigurationDraftService
-    let aiDraftService: AIConfigurationDraftService
-    @ObservedObject var viewModel: SpeechRecognitionViewModel
+    // Top-Level Data and Services
+    let dependencies: AppDependencies
+
+    @StateObject private var viewModel: SpeechRecognitionViewModel
+
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     init(
-        configManager: ConfigurationManager,
-        permissionManager: PermissionManager,
-        draftService: SpeechConfigurationDraftService,
-        aiDraftService: AIConfigurationDraftService,
+        dependencies: AppDependencies,
         viewModel: SpeechRecognitionViewModel
     ) {
-        self.configManager = configManager
-        self.permissionManager = permissionManager
-        self.draftService = draftService
-        self.aiDraftService = aiDraftService
-        self.viewModel = viewModel
+        self.dependencies = dependencies
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
@@ -80,12 +75,7 @@ struct SpeechRecognitionView: View {
         .sheet(isPresented: $viewModel.showSettings, onDismiss: {
             viewModel.handleSettingsDismissed()
         }, content: {
-            SettingsView(
-                configManager: configManager,
-                permissionManager: permissionManager,
-                draftService: draftService,
-                aiDraftService: aiDraftService
-            )
+            SettingsView(dependencies: dependencies)
         })
         .onDisappear {
             viewModel.ttsService?.stop()

@@ -30,16 +30,11 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var error: AppError?
     @Published private(set) var canSave: Bool = false // Now reactive
 
-    init(
-        configManager: ConfigurationManager,
-        permissionManager: PermissionManager,
-        draftService: SpeechConfigurationDraftService,
-        aiDraftService: AIConfigurationDraftService
-    ) {
-        self.configManager = configManager
-        self.permissionManager = permissionManager
-        self.draftService = draftService
-        self.aiDraftService = aiDraftService
+    init(dependencies: AppDependencies) {
+        configManager = dependencies.mainServicesManager.configurationManager
+        permissionManager = dependencies.permissionManager
+        draftService = dependencies.speechConfigurationDraftService
+        aiDraftService = dependencies.aiConfigurationDraftService
 
         // Initialize Children
         aiViewModel = AIConfigurationViewModel(
