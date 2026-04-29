@@ -49,7 +49,7 @@ struct ImageEditorContentView: View {
         }
         .overlay(alignment: .top) {
             StatusBanners(
-                errorMessage: viewModel.errorMessage,
+                errorMessage: viewModel.imageState.errorMessage,
                 showSuccess: viewModel.showSuccessBanner,
                 onDismissError: { viewModel.clearError() },
                 onDismissSuccess: { viewModel.showSuccessBanner = false }

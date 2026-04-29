@@ -10,19 +10,8 @@ struct SpeechConfigurationView: View {
     @StateObject private var viewModel: SpeechConfigurationViewModel
 
     init(
-        configManager: ConfigurationManager,
-        permissionManager: PermissionManager,
-        draftService: SpeechConfigurationDraftService
+        viewModel: SpeechConfigurationViewModel
     ) {
-        _viewModel = StateObject(wrappedValue: SpeechConfigurationViewModel(
-            configManager: configManager,
-            permissionManager: permissionManager,
-            draftService: draftService
-        ))
-    }
-
-    // Init for Previews / Dependency Injection
-    init(viewModel: SpeechConfigurationViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 

@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum AppBootstrapState {
-    case supported(AppDependencyContainer)
+    case supported(ContentViewModel, AppRouter)
     case unsupported(String)
 }
 
@@ -21,25 +21,32 @@ struct ColorBotKidsApp: App {
         // Change this to MockDependencyContainer.self to test mocks
         let containerType = ProductionDependencyContainer.self
 
-        // App.init() runs on the main thread, but the compiler doesn't know this implicitly.
-        // Since our containers are @MainActor (because they hold ViewModels), we must
-        // wrap their creation in assumeIsolated to satisfy Swift concurrency safety.
-        let state = MainActor.assumeIsolated {
-            if let errorMessage = containerType.systemUnavailabilityReason() {
-                return AppBootstrapState.unsupported(errorMessage)
-            } else {
-                return AppBootstrapState.supported(containerType.init())
-            }
-        }
+        if let errorMessage = containerType.systemUnavailabilityReason() {
+            bootstrapState = AppBootstrapState.unsupported(errorMessage)
+        } else {
+            // Initialize the concrete services
+            let container = containerType.init()
 
-        bootstrapState = state
+            let builder = DefaultViewModelBuilder(dependencies: container)
+            // Router gets the builder
+            let router = AppRouter(
+                builder: builder,
+                configurationManager: container.configurationManager,
+                permissionManager: container.permissionManager,
+                sessionManager: container.sessionManager
+            )
+
+            let contentVM = builder.makeContentViewModel()
+
+            bootstrapState = .supported(contentVM, router)
+        }
     }
 
     var body: some Scene {
         WindowGroup {
             switch bootstrapState {
-            case let .supported(container):
-                ContentView(viewModel: container.contentViewModel, router: container.router)
+            case let .supported(contentVM, router):
+                ContentView(viewModel: contentVM, router: router)
             case let .unsupported(reason):
                 UnsupportedView(reason: reason)
             }

@@ -9,8 +9,8 @@ import SwiftUI
 struct PermissionsPhotoSectionView: View {
     @StateObject private var viewModel: PhotoLibraryViewModel
 
-    init(permissionManager: PermissionManager) {
-        _viewModel = StateObject(wrappedValue: PhotoLibraryViewModel(manager: permissionManager))
+    init(viewModel: PhotoLibraryViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {

@@ -219,7 +219,7 @@ private extension LiveSpeechRecognitionService {
             .recognitionTask(with: request) { [weak self] result, error in
                 guard let self else { return }
 
-                if let error {
+                if error != nil {
                     self.teardown(resumingWith: .failure(SpeechRecognitionError.recognitionFailed))
                     return
                 }

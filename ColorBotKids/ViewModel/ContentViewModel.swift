@@ -24,16 +24,18 @@ class ContentViewModel: ObservableObject {
     @Published private(set) var initializationState: InitializationState = .notStarted
 
     // Dependencies
-    let mainServicesManager: MainServicesManager
-    let permissionManager: PermissionManager
-    let sessionManager: SessionManager
-    let imageToolingManager: ImageToolingManager
+    private let permissionManager: PermissionManager
+    private let sessionManager: SessionManager
+    private let configurationManager: ConfigurationManager
 
-    init(dependencies: AppDependencies) {
-        mainServicesManager = dependencies.mainServicesManager
-        permissionManager = dependencies.permissionManager
-        sessionManager = dependencies.sessionManager
-        imageToolingManager = dependencies.imageToolingManager
+    init(
+        configurationManager: ConfigurationManager,
+        permissionManager: PermissionManager,
+        sessionManager: SessionManager
+    ) {
+        self.configurationManager = configurationManager
+        self.sessionManager = sessionManager
+        self.permissionManager = permissionManager
     }
 
     func initialize() async {
@@ -56,9 +58,9 @@ class ContentViewModel: ObservableObject {
         initializationState = .ready
     }
 
-    private func loadConfiguration() async {
+    private func loadConfiguration() {
         do {
-            try mainServicesManager.configurationManager.load()
+            try configurationManager.load()
         } catch {
             print("⚠️ Configuration load failed silently: \(error.localizedDescription)")
         }

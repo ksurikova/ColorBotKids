@@ -9,20 +9,19 @@ import Foundation
 import PencilKit
 import SwiftUI
 
-@MainActor
-final class ProductionDependencyContainer: AppDependencyContainer, AppDependencies {
+final class ProductionDependencyContainer: AppDependencies {
     // MARK: - Selected Service Types
 
     // Define types here to ensure consistency between initialization and availability checks
     private typealias SpeechService = LiveSpeechRecognitionService
     private typealias TextToSpeechService = AVTextToSpeechService
 
+    let configurationManager: ConfigurationManager
     let mainServicesManager: MainServicesManager
     let permissionManager: PermissionManager
     let sessionManager: SessionManager
     let imageToolingManager: ImageToolingManager
-    lazy var contentViewModel: ContentViewModel = .init(dependencies: self)
-    lazy var router: AppRouter = .init(dependencies: self)
+
     let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
@@ -36,7 +35,9 @@ final class ProductionDependencyContainer: AppDependencyContainer, AppDependenci
             speechService: SpeechService.self,
             ttsService: TextToSpeechService.self
         )
-        mainServicesManager = Self.makeMainServicesManager(resolver: speechCapabilityResolver)
+        configurationManager = Self.makeConfigurationManager(resolver: speechCapabilityResolver)
+        mainServicesManager = Self
+            .makeMainServicesManager(configurationManager: configurationManager)
         speechConfigurationDraftService = LocalSpeechDraftService()
         aiConfigurationDraftService = LocalAIDraftService()
         settingsService = DefaultSettingsService()
@@ -69,23 +70,26 @@ final class ProductionDependencyContainer: AppDependencyContainer, AppDependenci
         )
     }
 
-    private static func makeMainServicesManager(resolver: SpeechCapabilityResolving)
+    private static func makeConfigurationManager(resolver: SpeechCapabilityResolving)
+        -> ConfigurationManager {
+        let configStorage = CommonConfigurationStorage()
+
+        return ConfigurationManager(
+            storage: configStorage,
+            resolver: resolver
+        )
+    }
+
+    private static func makeMainServicesManager(configurationManager: ConfigurationManager)
         -> MainServicesManager {
         let imageFactory = LiveImageGenerationServiceFactory()
-
-        let configStorage = CommonConfigurationStorage()
 
         let servicesFactory = MainServiceFactory(
             imageGenerationServiceFactory: imageFactory
         )
 
-        let configManager = ConfigurationManager(
-            storage: configStorage,
-            resolver: resolver
-        )
-
         return MainServicesManager(
-            configurationManager: configManager,
+            configurationManager: configurationManager,
             servicesFactory: servicesFactory
         )
     }

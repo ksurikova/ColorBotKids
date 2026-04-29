@@ -9,14 +9,12 @@ import Foundation
 import PencilKit
 import SwiftUI
 
-@MainActor
-final class MockDependencyContainer: AppDependencyContainer, AppDependencies {
+final class MockDependencyContainer: AppDependencies {
+    let configurationManager: ConfigurationManager
     let mainServicesManager: MainServicesManager
     let permissionManager: PermissionManager
     let sessionManager: SessionManager
     let imageToolingManager: ImageToolingManager
-    lazy var contentViewModel: ContentViewModel = .init(dependencies: self)
-    lazy var router: AppRouter = .init(dependencies: self)
     let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
@@ -33,9 +31,12 @@ final class MockDependencyContainer: AppDependencyContainer, AppDependencies {
             speechService: MockSpeechRecognitionService.self,
             ttsService: MockTextToSpeechService.self
         )
-        mainServicesManager = Self.makeMainServicesManager(
+        configurationManager = Self.makeConfigurationManager(
             with: configuration,
             resolver: speechCapabilityResolver
+        )
+        mainServicesManager = Self.makeMainServicesManager(
+            configurationManager: configurationManager
         )
         speechConfigurationDraftService = MockSpeechConfigurationDraftService()
         aiConfigurationDraftService = MockAIConfigurationDraftService()
@@ -82,13 +83,10 @@ final class MockDependencyContainer: AppDependencyContainer, AppDependencies {
         )
     }
 
-    private static func makeMainServicesManager(
+    private static func makeConfigurationManager(
         with configuration: AppConfiguration?,
         resolver: SpeechCapabilityResolving
-    )
-        -> MainServicesManager {
-        let imageFactory = ForcedMockImageGenerationServiceFactory()
-
+    ) -> ConfigurationManager {
         // Default to a valid working configuration if none provided (common for previews)
         let defaultConfig = AppConfiguration(
             aiConfig: AIConfiguration(provider: .mock, apiKey: "mock-key"),
@@ -104,17 +102,23 @@ final class MockDependencyContainer: AppDependencyContainer, AppDependencies {
             currentConfiguration: configuration ?? defaultConfig
         )
 
+        return ConfigurationManager(
+            storage: configStorage,
+            resolver: resolver
+        )
+    }
+
+    private static func makeMainServicesManager(
+        configurationManager: ConfigurationManager
+    ) -> MainServicesManager {
+        let imageFactory = ForcedMockImageGenerationServiceFactory()
+
         let servicesFactory = MainServiceFactory(
             imageGenerationServiceFactory: imageFactory
         )
 
-        let configManager = ConfigurationManager(
-            storage: configStorage,
-            resolver: resolver
-        )
-
         return MainServicesManager(
-            configurationManager: configManager,
+            configurationManager: configurationManager,
             servicesFactory: servicesFactory
         )
     }

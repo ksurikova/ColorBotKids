@@ -33,21 +33,9 @@ final class ImageEditorViewModel: ObservableObject {
         photoLibraryStatus == .authorized
     }
 
-    var isSaving: Bool {
-        imageState.isSaving
-    }
-
-    var hasUnsavedChanges: Bool {
-        imageState.hasUnsavedChanges
-    }
-
-    var errorMessage: String? {
-        imageState.errorMessage
-    }
-
     // MARK: - Dependencies
 
-    private let persistenceInteractor: EditorPersistenceInteractor
+    private let sessionManager: SessionManager
     private let toolingManager: ImageToolingManager
     private let permissionManager: PermissionManager
     private let settingsService: SettingsService
@@ -58,15 +46,17 @@ final class ImageEditorViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init(
-        persistenceInteractor: EditorPersistenceInteractor,
-        dependencies: AppDependencies
+        sessionManager: SessionManager,
+        toolingManager: ImageToolingManager,
+        permissionManager: PermissionManager,
+        settingsService: SettingsService
     ) {
-        self.persistenceInteractor = persistenceInteractor
-        toolingManager = dependencies.imageToolingManager
-        permissionManager = dependencies.permissionManager
-        settingsService = dependencies.settingsService
+        self.sessionManager = sessionManager
+        self.toolingManager = toolingManager
+        self.permissionManager = permissionManager
+        self.settingsService = settingsService
 
-        guard let initialImage = persistenceInteractor.initialImage else {
+        guard let initialImage = sessionManager.currentSession?.image else {
             fatalError(
                 "ImageEditorViewModel initialized without active session. Router must ensure session exists."
             )
@@ -167,7 +157,12 @@ final class ImageEditorViewModel: ObservableObject {
     func saveStateIfNeeded() {
         // Update session manager with current drawing data
         let currentDrawingData = canvasManager.getCurrentData()
-        persistenceInteractor.saveDrawingState(currentDrawingData)
+        sessionManager.updateDrawing(currentDrawingData)
+        do {
+            try sessionManager.save()
+        } catch {
+            print("⚠️ Failed to auto-save session: \(error)")
+        }
     }
 
     func openSettings(willOpen: (() -> Void)?, completion: ((Bool) -> Void)?) {
@@ -179,7 +174,7 @@ final class ImageEditorViewModel: ObservableObject {
     }
 
     func finishSession() {
-        persistenceInteractor.clearSession()
+        sessionManager.clear()
     }
 
     // MARK: - Private Helpers
@@ -190,7 +185,7 @@ final class ImageEditorViewModel: ObservableObject {
     }
 
     private func loadSessionData() {
-        if let data = persistenceInteractor.loadDrawingData() {
+        if let data = sessionManager.currentSession?.drawingData {
             canvasManager.load(data: data)
         } else {
             canvasManager.clear()

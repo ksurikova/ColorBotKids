@@ -11,31 +11,40 @@ struct ContentView: View {
     @ObservedObject var viewModel: ContentViewModel
     @ObservedObject var router: AppRouter
 
-    init(viewModel: ContentViewModel, router: AppRouter) {
-        self.viewModel = viewModel
-        self.router = router
-    }
-
     var body: some View {
         Group {
-            switch viewModel.initializationState {
-            case .notStarted, .loading:
+            if viewModel.initializationState == .ready {
+                buildRoot()
+            } else {
+                // notStarted and loading
                 ProgressIndicatorView(
                     descriptionMessage: String(localized: "onboarding_message_preparingApp")
                 )
-
-            case .ready:
-                router.buildView(path: $router.path)
             }
         }
         .task {
-            // Start initialization when the view appears
             await viewModel.initialize()
+            // Immediately tell the router to compute the first screen
+            // Since we are on the @MainActor, this update is thread-safe
+            router.finishInitialization()
         }
-        .onChange(of: viewModel.initializationState) { _, newState in
-            if case .ready = newState {
-                router.finishInitialization()
+    }
+
+    @ViewBuilder
+    private func buildRoot() -> some View {
+        // If the current logic dictates we are in the "Main" part of the app
+        if router.rootRoute == .main {
+            NavigationStack(path: $router.path) {
+                // The Router builds the root of the stack always
+                router.buildView(for: .main)
+                    .navigationDestination(for: AppRouter.Route.self) { route in
+                        // The Router builds any pushed views
+                        router.buildView(for: route)
+                    }
             }
+        } else {
+            // Otherwise, show the full-screen configuration views (no stack)
+            router.buildView(for: router.rootRoute)
         }
     }
 }

@@ -11,16 +11,10 @@ import SwiftUI
 final class SettingsViewModel: ObservableObject {
     // MARK: - Children
 
-    // Exposed so the View can pass them to child views
     let aiViewModel: AIConfigurationViewModel
     let speechViewModel: SpeechConfigurationViewModel
-
-    // MARK: Dependencies
-
-    private let configManager: ConfigurationManager
-    let permissionManager: PermissionManager
-    let draftService: SpeechConfigurationDraftService
-    let aiDraftService: AIConfigurationDraftService
+    let photoViewModel: PhotoLibraryViewModel
+    let configurationManager: ConfigurationManager
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -30,25 +24,16 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var error: AppError?
     @Published private(set) var canSave: Bool = false // Now reactive
 
-    init(dependencies: AppDependencies) {
-        configManager = dependencies.mainServicesManager.configurationManager
-        permissionManager = dependencies.permissionManager
-        draftService = dependencies.speechConfigurationDraftService
-        aiDraftService = dependencies.aiConfigurationDraftService
-
-        // Initialize Children
-        aiViewModel = AIConfigurationViewModel(
-            configManager: configManager,
-            draftService: aiDraftService
-        )
-
-        // Use .settings mode: Don't block saving just because microphone permission is missing
-        speechViewModel = SpeechConfigurationViewModel(
-            configManager: configManager,
-            permissionManager: permissionManager,
-            draftService: draftService,
-            mode: .settings
-        )
+    init(
+        aiViewModel: AIConfigurationViewModel,
+        speechViewModel: SpeechConfigurationViewModel,
+        photoViewModel: PhotoLibraryViewModel,
+        configurationManager: ConfigurationManager
+    ) {
+        self.aiViewModel = aiViewModel
+        self.speechViewModel = speechViewModel
+        self.photoViewModel = photoViewModel
+        self.configurationManager = configurationManager
 
         setupPipeline()
     }
@@ -108,7 +93,7 @@ final class SettingsViewModel: ObservableObject {
 
         // Perform Save
         do {
-            try configManager.saveAllConfigurations(ai: aiConfig, speech: speechConfig)
+            try configurationManager.saveAllConfigurations(ai: aiConfig, speech: speechConfig)
             // No need to clear drafts here, onDisappear will handle it upon dismissal
         } catch {
             self.error = error.asAppError

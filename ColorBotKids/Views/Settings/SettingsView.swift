@@ -9,24 +9,8 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: SettingsViewModel
-    let permissionManager: PermissionManager
-    let draftService: SpeechConfigurationDraftService
-    let aiDraftService: AIConfigurationDraftService
 
-    init(dependencies: AppDependencies) {
-        permissionManager = dependencies.permissionManager
-        draftService = dependencies.speechConfigurationDraftService
-        aiDraftService = dependencies.aiConfigurationDraftService
-        _viewModel = StateObject(wrappedValue: SettingsViewModel(
-            dependencies: dependencies
-        ))
-    }
-
-    // Init for Previews / Dependency Injection
     init(viewModel: SettingsViewModel) {
-        permissionManager = viewModel.permissionManager
-        draftService = viewModel.draftService
-        aiDraftService = viewModel.aiDraftService
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 
@@ -46,7 +30,7 @@ struct SettingsView: View {
                     )
 
                     PermissionsPhotoSectionView(
-                        permissionManager: permissionManager
+                        viewModel: viewModel.photoViewModel
                     )
                 }
             }

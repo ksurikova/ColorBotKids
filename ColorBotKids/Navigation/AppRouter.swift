@@ -8,18 +8,7 @@ import Combine
 import SwiftUI
 
 @MainActor
-protocol AppDependencies {
-    var mainServicesManager: MainServicesManager { get }
-    var permissionManager: PermissionManager { get }
-    var sessionManager: SessionManager { get }
-    var imageToolingManager: ImageToolingManager { get }
-    var settingsService: SettingsService { get }
-    var speechConfigurationDraftService: SpeechConfigurationDraftService { get }
-    var aiConfigurationDraftService: AIConfigurationDraftService { get }
-}
-
-@MainActor
-final class AppRouter: ObservableObject, AppDependencies {
+final class AppRouter: ObservableObject {
     // MARK: - Route Definition
 
     enum Route: Hashable {
@@ -33,16 +22,10 @@ final class AppRouter: ObservableObject, AppDependencies {
 
     // MARK: - Dependencies
 
-    let mainServicesManager: MainServicesManager
-    let permissionManager: PermissionManager
-    let sessionManager: SessionManager
-    let imageToolingManager: ImageToolingManager
-    let settingsService: SettingsService
-    let speechConfigurationDraftService: SpeechConfigurationDraftService
-    let aiConfigurationDraftService: AIConfigurationDraftService
-
-    private lazy var editorPersistenceInteractor: EditorPersistenceInteractor =
-        .init(sessionManager: sessionManager)
+    private let permissionManager: PermissionManager
+    private let sessionManager: SessionManager
+    private let configurationManager: ConfigurationManager
+    private let builder: ViewModelBuilder
 
     // MARK: - State
 
@@ -50,22 +33,16 @@ final class AppRouter: ObservableObject, AppDependencies {
     @Published private(set) var rootRoute: Route = .initializing
 
     private var isInitializing = true
-    private var cancellables: Set<AnyCancellable> = []
-    private var cachedSpeechVM: SpeechRecognitionViewModel?
+    private var cancellables = Set<AnyCancellable>()
 
-    var configurationManager: ConfigurationManager {
-        mainServicesManager.configurationManager
-    }
-
-    init(dependencies: AppDependencies) {
-        mainServicesManager = dependencies.mainServicesManager
-        permissionManager = dependencies.permissionManager
-        sessionManager = dependencies.sessionManager
-        imageToolingManager = dependencies.imageToolingManager
-        settingsService = dependencies.settingsService
-        speechConfigurationDraftService = dependencies.speechConfigurationDraftService
-        aiConfigurationDraftService = dependencies.aiConfigurationDraftService
-
+    init(builder: ViewModelBuilder,
+         configurationManager: ConfigurationManager,
+         permissionManager: PermissionManager,
+         sessionManager: SessionManager) {
+        self.builder = builder
+        self.configurationManager = configurationManager
+        self.sessionManager = sessionManager
+        self.permissionManager = permissionManager
         setupObservers()
     }
 
@@ -150,66 +127,34 @@ final class AppRouter: ObservableObject, AppDependencies {
         return .main
     }
 
-    // MARK: - View Building
-
     @ViewBuilder
-    func buildView(path: Binding<NavigationPath>) -> some View {
-        switch rootRoute {
+    func buildView(for route: Route) -> some View {
+        switch route {
         case .initializing:
             ProgressIndicatorView(
-                descriptionMessage: String(localized: "onboarding_message_preparingApp")
+                descriptionMessage: String(localized: "onboarding_message_preparingScreen")
             )
         case .aiConfiguration:
-            AIConfigurationView(
-                configManager: configurationManager,
-                draftService: aiConfigurationDraftService
-            )
+            AIConfigurationView(viewModel: builder.makeAiConfigurationViewModel())
         case .speechConfiguration:
-            SpeechConfigurationView(
-                configManager: configurationManager,
-                permissionManager: permissionManager,
-                draftService: speechConfigurationDraftService
-            )
-        case .photoPermission:
-            PhotoPermissionsView(permissionManager: permissionManager)
-        case .main, .imageEditor:
-            buildMainStack(path: path)
-        }
-    }
-
-    @ViewBuilder
-    private func buildMainStack(path: Binding<NavigationPath>) -> some View {
-        NavigationStack(path: path) {
-            SpeechRecognitionView(
-                dependencies: self,
-                viewModel: speechViewModel()
-            )
-            .navigationDestination(for: Route.self) { route in
-                if route == .imageEditor, let vm = self.editorViewModel() {
-                    ImageEditorView(viewModel: vm)
-                        .navigationBarBackButtonHidden(true)
-                }
+            SpeechConfigurationView(viewModel: builder
+                .makeSpeechConfigurationViewModel(mode: .onboarding))
+        case .photoPermission: PhotoPermissionsView(viewModel:
+                builder.makePhotoLibraryViewModel())
+        case .main:
+            SpeechRecognitionView(viewModel: builder.makeSpeechViewModel(),
+                                  settingsViewFactory: { [weak self] in
+                                      if let builder = self?.builder {
+                                          // The Router builds the final product
+                                          SettingsView(viewModel: builder.makeSettingsViewModel())
+                                      } else {
+                                          EmptyView()
+                                      }
+                                  })
+        case .imageEditor:
+            if let vm = builder.makeEditorViewModel() {
+                ImageEditorView(viewModel: vm)
             }
         }
-    }
-
-    // MARK: - ViewModel Factories
-
-    private func speechViewModel() -> SpeechRecognitionViewModel {
-        if let cached = cachedSpeechVM { return cached }
-        let vm = SpeechRecognitionViewModel(
-            servicesManager: mainServicesManager,
-            sessionManager: sessionManager
-        )
-        cachedSpeechVM = vm
-        return vm
-    }
-
-    private func editorViewModel() -> ImageEditorViewModel? {
-        guard sessionManager.currentSession != nil else { return nil }
-        return ImageEditorViewModel(
-            persistenceInteractor: editorPersistenceInteractor,
-            dependencies: self
-        )
     }
 }

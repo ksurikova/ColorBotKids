@@ -9,12 +9,9 @@ import SwiftUI
 struct AIConfigurationView: View {
     @StateObject private var viewModel: AIConfigurationViewModel
 
-    init(configManager: ConfigurationManager, draftService: AIConfigurationDraftService? = nil) {
+    init(viewModel: AIConfigurationViewModel) {
         _viewModel =
-            StateObject(wrappedValue: AIConfigurationViewModel(
-                configManager: configManager,
-                draftService: draftService
-            ))
+            StateObject(wrappedValue: viewModel)
     }
 
     // MARK: - Body
@@ -82,13 +79,14 @@ struct AIConfigurationView: View {
     }
 }
 
-#Preview {
-    let mockStorage = MockConfigurationStorage()
-    let resolver = SpeechCapabilityResolver(
-        speechService: MockSpeechRecognitionService.self,
-        ttsService: MockTextToSpeechService.self
-    )
-    let configManager = ConfigurationManager(storage: mockStorage, resolver: resolver)
-
-    return AIConfigurationView(configManager: configManager)
-}
+// need to refine preview
+// #Preview {
+//    let mockStorage = MockConfigurationStorage()
+//    let resolver = SpeechCapabilityResolver(
+//        speechService: MockSpeechRecognitionService.self,
+//        ttsService: MockTextToSpeechService.self
+//    )
+//    let configManager = ConfigurationManager(storage: mockStorage, resolver: resolver)
+//
+//    return AIConfigurationView(configManager: configManager)
+// }

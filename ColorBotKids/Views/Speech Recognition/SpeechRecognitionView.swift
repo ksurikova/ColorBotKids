@@ -7,20 +7,19 @@
 
 import SwiftUI
 
-struct SpeechRecognitionView: View {
-    // Top-Level Data and Services
-    let dependencies: AppDependencies
-
+struct SpeechRecognitionView<SettingsView: View>: View {
     @StateObject private var viewModel: SpeechRecognitionViewModel
 
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
+    private let settingsViewFactory: () -> SettingsView
+
     init(
-        dependencies: AppDependencies,
-        viewModel: SpeechRecognitionViewModel
+        viewModel: SpeechRecognitionViewModel,
+        @ViewBuilder settingsViewFactory: @escaping () -> SettingsView
     ) {
-        self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.settingsViewFactory = settingsViewFactory
     }
 
     var body: some View {
@@ -75,7 +74,9 @@ struct SpeechRecognitionView: View {
         .sheet(isPresented: $viewModel.showSettings, onDismiss: {
             viewModel.handleSettingsDismissed()
         }, content: {
-            SettingsView(dependencies: dependencies)
+            // We just call the factory. It gives us the SettingsView
+            // already injected with its ViewModel
+            settingsViewFactory()
         })
         .onDisappear {
             viewModel.ttsService?.stop()
