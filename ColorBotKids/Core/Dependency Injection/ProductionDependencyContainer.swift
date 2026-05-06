@@ -16,11 +16,11 @@ final class ProductionDependencyContainer: AppDependencies {
     private typealias SpeechService = LiveSpeechRecognitionService
     private typealias TextToSpeechService = AVTextToSpeechService
 
-    let configurationManager: ConfigurationManager
-    let mainServicesManager: MainServicesManager
-    let permissionManager: PermissionManager
-    let sessionManager: SessionManager
-    let imageToolingManager: ImageToolingManager
+    let configurationManager: ConfigurationManaging
+    let mainServicesManager: MainServicesManaging
+    let permissionManager: PermissionManaging
+    let sessionManager: SessionManaging
+    let imageToolingManager: ImageToolingManaging
 
     let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
@@ -45,7 +45,7 @@ final class ProductionDependencyContainer: AppDependencies {
 
     // MARK: - Factory Methods
 
-    private static func makeToolingManager() -> ImageToolingManager {
+    private static func makeToolingManager() -> ImageToolingManaging {
         let drawService = DefaultDrawService()
         let saveService = DefaultImageSaveService()
 
@@ -55,12 +55,12 @@ final class ProductionDependencyContainer: AppDependencies {
         )
     }
 
-    private static func makePermissionManager() -> PermissionManager {
+    private static func makePermissionManager() -> PermissionManaging {
         let permissionService = DefaultPermissionService()
         return PermissionManager(service: permissionService)
     }
 
-    private static func makeSessionManager() -> SessionManager {
+    private static func makeSessionManager() -> SessionManaging {
         let stateStorage = UserDefaultsStateStorage()
         let stateRestoration = DefaultStateRestorationService()
 
@@ -71,7 +71,7 @@ final class ProductionDependencyContainer: AppDependencies {
     }
 
     private static func makeConfigurationManager(resolver: SpeechCapabilityResolving)
-        -> ConfigurationManager {
+        -> ConfigurationManaging {
         let configStorage = CommonConfigurationStorage()
 
         return ConfigurationManager(
@@ -80,8 +80,8 @@ final class ProductionDependencyContainer: AppDependencies {
         )
     }
 
-    private static func makeMainServicesManager(configurationManager: ConfigurationManager)
-        -> MainServicesManager {
+    private static func makeMainServicesManager(configurationManager: ConfigurationManaging)
+        -> MainServicesManaging {
         let imageFactory = LiveImageGenerationServiceFactory()
 
         let servicesFactory = MainServiceFactory(

@@ -9,9 +9,9 @@ import SwiftUI
 @MainActor
 final class PhotoLibraryViewModel: ObservableObject {
     @Published private(set) var status: PermissionStatus
-    private let manager: PermissionManager
+    private let manager: PermissionManaging
 
-    init(manager: PermissionManager) {
+    init(manager: PermissionManaging) {
         self.manager = manager
         status = manager.photoLibrary.value
 

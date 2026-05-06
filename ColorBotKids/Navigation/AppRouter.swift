@@ -22,9 +22,9 @@ final class AppRouter: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let permissionManager: PermissionManager
-    private let sessionManager: SessionManager
-    private let configurationManager: ConfigurationManager
+    private let permissionManager: PermissionManaging
+    private let sessionManager: SessionManaging
+    private let configurationManager: ConfigurationManaging
     private let builder: ViewModelBuilder
 
     // MARK: - State
@@ -36,9 +36,9 @@ final class AppRouter: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init(builder: ViewModelBuilder,
-         configurationManager: ConfigurationManager,
-         permissionManager: PermissionManager,
-         sessionManager: SessionManager) {
+         configurationManager: ConfigurationManaging,
+         permissionManager: PermissionManaging,
+         sessionManager: SessionManaging) {
         self.builder = builder
         self.configurationManager = configurationManager
         self.sessionManager = sessionManager

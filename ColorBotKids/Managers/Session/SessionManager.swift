@@ -7,7 +7,20 @@
 import Combine
 import SwiftUI
 
-final class SessionManager {
+protocol SessionManaging {
+    var sessionChanged: PassthroughSubject<Void, Never> { get }
+    var currentSession: DrawingSession? { get }
+    var hasActiveSession: Bool { get }
+
+    func start(with image: UIImage)
+    func updateDrawing(_ data: Data)
+    func save() throws
+    func clear()
+    func delete() throws
+    func restoreLast()
+}
+
+final class SessionManager: SessionManaging {
     let sessionChanged = PassthroughSubject<Void, Never>()
     private(set) var currentSession: DrawingSession?
 

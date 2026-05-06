@@ -7,16 +7,28 @@
 import Combine
 import SwiftUI
 
-final class MainServicesManager {
+protocol MainServicesManaging {
+    var services: AppMainServices? { get }
+
+    func prepareServices() throws
+    func createServicesIfNeeded() throws
+
+    func configureTTSCallbacks(
+        onVolumeWarning: @escaping (VolumeWarningLevel) -> Void,
+        onDidFailToPlay: @escaping () -> Void
+    )
+}
+
+final class MainServicesManager: MainServicesManaging {
     // MARK: - Dependencies
 
-    let configurationManager: ConfigurationManager
+    let configurationManager: any ConfigurationManaging
     private let servicesFactory: MainServiceFactory
 
     private var cancellables = Set<AnyCancellable>()
 
     init(
-        configurationManager: ConfigurationManager,
+        configurationManager: any ConfigurationManaging,
         servicesFactory: MainServiceFactory
     ) {
         self.configurationManager = configurationManager

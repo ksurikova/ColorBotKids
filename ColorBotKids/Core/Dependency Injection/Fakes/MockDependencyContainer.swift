@@ -10,11 +10,11 @@ import PencilKit
 import SwiftUI
 
 final class MockDependencyContainer: AppDependencies {
-    let configurationManager: ConfigurationManager
-    let mainServicesManager: MainServicesManager
-    let permissionManager: PermissionManager
-    let sessionManager: SessionManager
-    let imageToolingManager: ImageToolingManager
+    let configurationManager: ConfigurationManaging
+    let mainServicesManager: MainServicesManaging
+    let permissionManager: PermissionManaging
+    let sessionManager: SessionManaging
+    let imageToolingManager: ImageToolingManaging
     let speechCapabilityResolver: SpeechCapabilityResolving
     let speechConfigurationDraftService: SpeechConfigurationDraftService
     let aiConfigurationDraftService: AIConfigurationDraftService
@@ -73,7 +73,7 @@ final class MockDependencyContainer: AppDependencies {
         return manager
     }
 
-    private static func makeSessionManager() -> SessionManager {
+    private static func makeSessionManager() -> SessionManaging {
         let stateStorage = MockStateStorage()
         let stateRestoration = MockStateRestorationService()
 
@@ -86,7 +86,7 @@ final class MockDependencyContainer: AppDependencies {
     private static func makeConfigurationManager(
         with configuration: AppConfiguration?,
         resolver: SpeechCapabilityResolving
-    ) -> ConfigurationManager {
+    ) -> ConfigurationManaging {
         // Default to a valid working configuration if none provided (common for previews)
         let defaultConfig = AppConfiguration(
             aiConfig: AIConfiguration(provider: .mock, apiKey: "mock-key"),
@@ -109,8 +109,8 @@ final class MockDependencyContainer: AppDependencies {
     }
 
     private static func makeMainServicesManager(
-        configurationManager: ConfigurationManager
-    ) -> MainServicesManager {
+        configurationManager: ConfigurationManaging
+    ) -> MainServicesManaging {
         let imageFactory = ForcedMockImageGenerationServiceFactory()
 
         let servicesFactory = MainServiceFactory(

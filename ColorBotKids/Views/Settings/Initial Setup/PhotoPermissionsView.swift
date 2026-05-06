@@ -33,8 +33,7 @@ struct PhotoPermissionsView: View {
     }
 }
 
-// #Preview {
-//    let permissionManager = PermissionManager(service: DefaultPermissionService())
-//
-//    PhotoPermissionsView(permissionManager: permissionManager)
-// }
+#Preview {
+    let vm = PreviewMocks.photoLibraryViewModel
+    PhotoPermissionsView(viewModel: vm)
+}

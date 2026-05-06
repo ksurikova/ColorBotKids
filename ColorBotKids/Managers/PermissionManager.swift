@@ -6,20 +6,20 @@
 //
 import Combine
 
-// we need to define a protocol for better architecture
-// protocol PermissionManaging {
-//    // We only need the 'get' because the ViewModel shouldn't be
-//    // the one pushing values into the subject.
-//    var microphone: CurrentValueSubject<PermissionStatus, Never> { get }
-//    var photoLibrary: CurrentValueSubject<PermissionStatus, Never> { get }
-//
-//    var hasSpeechPermissions: Bool { get }
-//
-//    func request(_ permission: any PermissionDefinition) async -> Bool
-//    func checkAll()
-// }
+protocol PermissionManaging {
+    var microphone: CurrentValueSubject<PermissionStatus, Never> { get }
+    var speechRecognition: CurrentValueSubject<PermissionStatus, Never> { get }
+    var photoLibrary: CurrentValueSubject<PermissionStatus, Never> { get }
 
-final class PermissionManager {
+    var hasAllRequiredPermissions: Bool { get }
+    var hasSpeechPermissions: Bool { get }
+
+    func request(_ permission: any PermissionDefinition) async -> Bool
+    func getPermissionStatus(_ permission: any PermissionDefinition) -> PermissionStatus
+    func checkAll()
+}
+
+final class PermissionManager: PermissionManaging {
     // CurrentValueSubject holds the state AND notifies listeners
     let microphone = CurrentValueSubject<PermissionStatus, Never>(.notDetermined)
     let speechRecognition = CurrentValueSubject<PermissionStatus, Never>(.notDetermined)

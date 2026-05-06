@@ -11,7 +11,7 @@ import SwiftUI
 final class AIConfigurationViewModel: ObservableObject {
     // MARK: - Dependencies
 
-    private let configManager: ConfigurationManager
+    private let configManager: ConfigurationManaging
     private let draftService: AIConfigurationDraftService?
     private var cancellables = Set<AnyCancellable>()
 
@@ -44,7 +44,7 @@ final class AIConfigurationViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(configManager: ConfigurationManager, draftService: AIConfigurationDraftService? = nil) {
+    init(configManager: ConfigurationManaging, draftService: AIConfigurationDraftService? = nil) {
         self.configManager = configManager
         self.draftService = draftService
 

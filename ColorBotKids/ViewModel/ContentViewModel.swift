@@ -24,14 +24,14 @@ class ContentViewModel: ObservableObject {
     @Published private(set) var initializationState: InitializationState = .notStarted
 
     // Dependencies
-    private let permissionManager: PermissionManager
-    private let sessionManager: SessionManager
-    private let configurationManager: ConfigurationManager
+    private let permissionManager: PermissionManaging
+    private let sessionManager: SessionManaging
+    private let configurationManager: ConfigurationManaging
 
     init(
-        configurationManager: ConfigurationManager,
-        permissionManager: PermissionManager,
-        sessionManager: SessionManager
+        configurationManager: ConfigurationManaging,
+        permissionManager: PermissionManaging,
+        sessionManager: SessionManaging
     ) {
         self.configurationManager = configurationManager
         self.sessionManager = sessionManager

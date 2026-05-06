@@ -10,7 +10,7 @@ import SwiftUI
 struct SpeechPermissionsSection: View {
     @StateObject private var viewModel: SpeechPermissionsViewModel
 
-    init(permissionManager: PermissionManager) {
+    init(permissionManager: PermissionManaging) {
         // because we have lightweighted ViewModel, we can create it directly in init without
         // worrying about performance
         _viewModel =

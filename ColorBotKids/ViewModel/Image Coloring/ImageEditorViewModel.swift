@@ -35,9 +35,9 @@ final class ImageEditorViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let sessionManager: SessionManager
-    private let toolingManager: ImageToolingManager
-    private let permissionManager: PermissionManager
+    private let sessionManager: SessionManaging
+    private let toolingManager: ImageToolingManaging
+    private let permissionManager: PermissionManaging
     private let settingsService: SettingsService
 
     // MARK: - Internal State
@@ -46,9 +46,9 @@ final class ImageEditorViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init(
-        sessionManager: SessionManager,
-        toolingManager: ImageToolingManager,
-        permissionManager: PermissionManager,
+        sessionManager: SessionManaging,
+        toolingManager: ImageToolingManaging,
+        permissionManager: PermissionManaging,
         settingsService: SettingsService
     ) {
         self.sessionManager = sessionManager

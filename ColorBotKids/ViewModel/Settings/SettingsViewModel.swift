@@ -14,7 +14,7 @@ final class SettingsViewModel: ObservableObject {
     let aiViewModel: AIConfigurationViewModel
     let speechViewModel: SpeechConfigurationViewModel
     let photoViewModel: PhotoLibraryViewModel
-    let configurationManager: ConfigurationManager
+    let configurationManager: ConfigurationManaging
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -28,7 +28,7 @@ final class SettingsViewModel: ObservableObject {
         aiViewModel: AIConfigurationViewModel,
         speechViewModel: SpeechConfigurationViewModel,
         photoViewModel: PhotoLibraryViewModel,
-        configurationManager: ConfigurationManager
+        configurationManager: ConfigurationManaging
     ) {
         self.aiViewModel = aiViewModel
         self.speechViewModel = speechViewModel

@@ -2,8 +2,12 @@ import PencilKit
 import SwiftUI
 import UIKit
 
+protocol ImageToolingManaging {
+    func saveImage(baseImage: UIImage, canvasView: PKCanvasView) async throws -> UIImage
+}
+
 // Use this manager to encapsulate image manipulation logic
-final class ImageToolingManager {
+final class ImageToolingManager: ImageToolingManaging {
     private let drawService: DrawService
     private let saveService: ImageSaveService
 

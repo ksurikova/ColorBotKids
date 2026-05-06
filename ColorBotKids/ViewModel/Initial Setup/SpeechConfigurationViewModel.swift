@@ -49,9 +49,9 @@ final class SpeechConfigurationViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let configManager: ConfigurationManager
+    private let configManager: ConfigurationManaging
     private let draftService: SpeechConfigurationDraftService
-    let permissionManager: PermissionManager
+    let permissionManager: PermissionManaging
     private let mode: ConfigurationMode
 
     private var cancellables = Set<AnyCancellable>()
@@ -84,8 +84,8 @@ final class SpeechConfigurationViewModel: ObservableObject {
     // MARK: - Initialization
 
     init(
-        configManager: ConfigurationManager,
-        permissionManager: PermissionManager,
+        configManager: ConfigurationManaging,
+        permissionManager: PermissionManaging,
         draftService: SpeechConfigurationDraftService,
         mode: ConfigurationMode = .onboarding
     ) {

@@ -56,14 +56,14 @@ final class SpeechRecognitionViewModel: ObservableObject {
     var ttsService: TextToSpeechService? { servicesManager.services?.textToSpeech }
     var imageService: ImageGenerationService? { servicesManager.services?.imageGeneration }
 
-    private let servicesManager: MainServicesManager
-    private let sessionManager: SessionManager
+    private let servicesManager: MainServicesManaging
+    private let sessionManager: SessionManaging
 
     var canSpeakText: Bool {
         ttsService != nil && state.isSpeechRecognized
     }
 
-    init(servicesManager: MainServicesManager, sessionManager: SessionManager) {
+    init(servicesManager: MainServicesManaging, sessionManager: SessionManaging) {
         self.servicesManager = servicesManager
         self.sessionManager = sessionManager
 

@@ -79,14 +79,15 @@ struct AIConfigurationView: View {
     }
 }
 
-// need to refine preview
-// #Preview {
-//    let mockStorage = MockConfigurationStorage()
-//    let resolver = SpeechCapabilityResolver(
-//        speechService: MockSpeechRecognitionService.self,
-//        ttsService: MockTextToSpeechService.self
-//    )
-//    let configManager = ConfigurationManager(storage: mockStorage, resolver: resolver)
-//
-//    return AIConfigurationView(configManager: configManager)
-// }
+#Preview {
+    let vm = PreviewMocks.aiConfigurationViewModel
+    return AIConfigurationView(viewModel: vm)
+}
+
+#Preview("AI Configuration - Stubbed logic") {
+    let container = StubDependencyContainer()
+    let builder = DefaultViewModelBuilder(dependencies: container)
+    let vm = builder.makeAiConfigurationViewModel()
+
+    return AIConfigurationView(viewModel: vm)
+}

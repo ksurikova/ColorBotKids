@@ -7,7 +7,28 @@
 import Combine
 import Foundation
 
-final class ConfigurationManager {
+protocol ConfigurationManaging {
+    var configuration: AppConfiguration { get }
+    var resolver: SpeechCapabilityResolving { get }
+    var configurationSaved: PassthroughSubject<Void, Never> { get }
+    var currentSpeechCapabilities: SpeechCapabilities? { get }
+    var isFullyConfigured: Bool { get }
+    var isTTSEnabled: Bool { get }
+    var autoPlayConfirmation: Bool { get }
+
+    func getCapableLocales() -> [Locale]
+    func resolveCapabilities(for config: SpeechConfiguration) -> SpeechCapabilities
+    func resolveCapabilities(for locale: Locale) -> SpeechCapabilities
+    func getInitialLocale() -> Locale
+    func load() throws
+
+    func saveSpeechConfiguration(_ config: SpeechConfiguration) throws
+    func saveAllConfigurations(ai: AIConfiguration, speech: SpeechConfiguration) throws
+    func saveAIConfiguration(_ config: AIConfiguration) throws
+    func reset() throws
+}
+
+final class ConfigurationManager: ConfigurationManaging {
     private(set) var configuration: AppConfiguration
 
     private let storage: ConfigurationStorage

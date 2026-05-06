@@ -48,3 +48,27 @@ struct ContentView: View {
         }
     }
 }
+
+#Preview("App Launch - Configured") {
+    // These instances use pure mock logic - no camera, mic, or network!
+    ContentView(
+        viewModel: PreviewMocks.contentViewModel,
+        router: PreviewMocks.router
+    )
+}
+
+#Preview("App Launch - Dumb Previews Examples") {
+    // This demonstrates using our Dumb Stubs to bypass initialization logic.
+    let stubContainer = StubDependencyContainer()
+    let builder = DefaultViewModelBuilder(dependencies: stubContainer)
+
+    return ContentView(
+        viewModel: builder.makeContentViewModel(),
+        router: AppRouter(
+            builder: builder,
+            configurationManager: stubContainer.configurationManager,
+            permissionManager: stubContainer.permissionManager,
+            sessionManager: stubContainer.sessionManager
+        )
+    )
+}

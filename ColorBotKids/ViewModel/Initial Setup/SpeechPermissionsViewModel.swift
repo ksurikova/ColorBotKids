@@ -12,10 +12,10 @@ final class SpeechPermissionsViewModel: ObservableObject {
     @Published private(set) var micStatus: PermissionStatus
     @Published private(set) var speechStatus: PermissionStatus
 
-    private let manager: PermissionManager
+    private let manager: PermissionManaging
     private var cancellables = Set<AnyCancellable>()
 
-    init(manager: PermissionManager) {
+    init(manager: PermissionManaging) {
         self.manager = manager
         micStatus = manager.microphone.value
         speechStatus = manager.speechRecognition.value

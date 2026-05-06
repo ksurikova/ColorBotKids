@@ -6,11 +6,11 @@
 //
 
 protocol AppDependencies {
-    var configurationManager: ConfigurationManager { get }
-    var mainServicesManager: MainServicesManager { get }
-    var permissionManager: PermissionManager { get }
-    var sessionManager: SessionManager { get }
-    var imageToolingManager: ImageToolingManager { get }
+    var configurationManager: ConfigurationManaging { get }
+    var mainServicesManager: MainServicesManaging { get }
+    var permissionManager: PermissionManaging { get }
+    var sessionManager: SessionManaging { get }
+    var imageToolingManager: ImageToolingManaging { get }
     var settingsService: SettingsService { get }
     var speechConfigurationDraftService: SpeechConfigurationDraftService { get }
     var aiConfigurationDraftService: AIConfigurationDraftService { get }
